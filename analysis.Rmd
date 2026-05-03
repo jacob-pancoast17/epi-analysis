@@ -7,6 +7,28 @@ output: html_document
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
+
+pacman::p_load(tidyverse, ggplot2)
+
+vt_rsv <- 
+  read.csv("CDC_RSV_Wastewater_Data.csv") |>
+  
+  select(site, state_territory, counties_served, sample_collect_date, pcr_target, pcr_target_avg_conc) |>
+  
+  filter(pcr_target == 'rsv',
+         site != '1962') |> 
+  
+  # Since we filtered for pcr_target == RSV, we can drop the pcr_target column
+  select(-pcr_target) |> 
+  
+  rename(state = state_territory,
+         county = counties_served,
+         date = sample_collect_date,
+         rsv_conc = pcr_target_avg_conc) |> 
+  
+  mutate(date = mdy(date),
+         rsv_conc = as.numeric(gsub(",", "", rsv_conc)),
+         site = as.factor(site))
 ```
 
 ## R Markdown
@@ -15,8 +37,24 @@ This is an R Markdown document. Markdown is a simple formatting syntax for autho
 
 When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
 
-```{r cars}
-summary(cars)
+```{r exploratory}
+
+ggplot(
+  data = vt_rsv,
+  mapping = aes(
+    x = date,
+    y = rsv_conc
+  )
+) +
+  geom_line() +
+  theme(
+    plot.title = element_text("AHHAHAH")
+  ) +
+  facet_wrap(
+    facets = vars(site),
+    ncol = 2,
+    scales = 'free'
+  )
 ```
 
 ## Including Plots
