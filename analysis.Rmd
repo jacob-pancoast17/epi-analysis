@@ -1,15 +1,39 @@
 ---
-title: "analysis"
+title: "2026 RSV Control in Vermont"
 author: "Jacob Pancoast"
 date: "2026-05-02"
 output: html_document
 ---
 
+## About Respiratory Syncytial Virus (RSV)
+
+Respiratory syncytial virus (RSV) is a RNA virus belonging to the *Pneumoviridae* family of viruses. RSV is highly contagious, and often misidentified as other common respiratory viruses including the common cold, flu, and COVID-19. Similarly to these other respiratory diseases, RSV infection is most often accompanied by:
+
+* Difficulty breathing
+* Coughing
+* Sneezing
+* Congestion
+* Decreased appetite
+
+as well as less common symptoms, which usually appear in infants, young children, and older adults:
+
+* Bronchiolitis
+  * A lower respiratory tract viral infectious causing swelling and mucus buildups in the bronchiole airways of the lungs leading to inflammation and labored breathing
+* Pneumonia
+  * Infection of the air sacs in both lungs leading to inflammation followed by coughs, phlegm, fever, chills, and labored breathing
+
+Like many other seasonal viruses, RSV starts in the fall in the United States, peaking in the winter (usually around January to December) before case numbers lower as spring approaches.
+
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 
-pacman::p_load(tidyverse, ggplot2)
+pacman::p_load(tidyverse, 
+               ggplot2, 
+               tsibble,
+               slider)
+```
 
+``` {r clean_data, include=FALSE}
 vt_rsv <- 
   read.csv("CDC_RSV_Wastewater_Data.csv") |>
   
@@ -26,9 +50,36 @@ vt_rsv <-
          date = sample_collect_date,
          rsv_conc = pcr_target_avg_conc) |> 
   
-  mutate(date = mdy(date),
-         rsv_conc = as.numeric(gsub(",", "", rsv_conc)),
-         site = as.factor(site))
+  mutate(date = mdy(date), # date
+         rsv_conc = as.numeric(gsub(",", "", rsv_conc)), # convert to a numeric column
+         county = as.factor(county), # convert to a factor
+         site = as.factor(site), # convert to a factor
+         facet_label = paste0("Site ", site, ": ", county, " county")) # create a title column 
+  
+
+```
+
+
+``` {r rolling_avg, include=FALSE}
+
+# Calculate the rolling average column for data visualization
+
+vt_rsv <-
+  vt_rsv |> 
+  
+  group_by(site) |> # group by site for calculating rolling average
+  
+  arrange(date, .by_group = TRUE) |> # arrange by date for calculating rolling average
+  
+  mutate(mean_7day = slide_index_dbl(
+           .x = rsv_conc,
+           .i = date,
+           .f = ~mean(.x, na.rm = TRUE),
+           .before = days(6)
+         )) |> # create the rolling average column
+  
+  ungroup() # ungroup the data
+
 ```
 
 ## R Markdown
@@ -40,29 +91,50 @@ When you click the **Knit** button a document will be generated that includes bo
 ```{r exploratory}
 
 ggplot(
-  data = vt_rsv,
-  mapping = aes(
-    x = date,
-    y = rsv_conc
-  )
-) +
-  geom_line() +
-  theme(
-    plot.title = element_text("AHHAHAH")
+  data = vt_rsv) +
+  geom_line(
+    mapping = aes(
+      x = date,
+      y = rsv_conc
+      )#,
+    #width = 1
   ) +
+  geom_line(
+    mapping = aes(
+      x = date,
+      y = mean_7day,
+      color = site
+    )
+  ) +
+  theme() +
   facet_wrap(
-    facets = vars(site),
+    facets = vars(facet_label),
     ncol = 2,
     scales = 'free'
   )
 ```
 
-## Including Plots
+## Time Series
 
-You can also embed plots, for example:
 
-```{r pressure, echo=FALSE}
-plot(pressure)
+```{r time_series} 
+#counts <- tsibble(vt_rsv, index = date)
+
+#class(counts)
+
+#counts
+
 ```
 
 Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+
+
+## Sources
+
+https://www.cdc.gov/rsv/about/index.html
+
+https://www.mayoclinic.org/diseases-conditions/bronchiolitis/symptoms-causes/syc-20351565
+
+https://www.mayoclinic.org/diseases-conditions/pneumonia/symptoms-causes/syc-20354204
+
+
