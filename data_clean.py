@@ -1,6 +1,6 @@
 import pandas as pd
 
-data_cleaned = (
+wastewater_cleaned = (
     # Read in the CSV
     pd.read_csv("CDC_Wastewater_Data_for_RSV_20260428.csv")
 
@@ -8,4 +8,4 @@ data_cleaned = (
     .query("state_territory == 'vt'")
     )
 
-data_cleaned.to_csv('CDC_RSV_Wastewater_Data.csv', index = False)
+wastewater_cleaned.to_csv('CDC_RSV_Wastewater_Data.csv', index = False)
