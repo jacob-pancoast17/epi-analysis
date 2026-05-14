@@ -32,7 +32,9 @@ pacman::p_load(tidyverse,
                tsibble,
                slider,
                fable,
-               feasts
+               feasts,
+               Kendall,
+               mgcv
                )
 ```
 
@@ -205,10 +207,11 @@ seasonal_decomposition <- function(site_num) {
            rsv_conc = log1p(rsv_conc)) |> # Transform rsv_conc by log
     group_by(week) |> 
     summarise(weekly_mean = mean(rsv_conc, na.rm = TRUE)) |> # Create weekly mean
-    tsibble(index=week) |> # Convert to tsibble
-    
-    # Fit the STL model
-    model(stl = STL(weekly_mean))
+    as_tsibble(index=week) |> # Convert to tsibble
+    fill_gaps() |> 
+    mutate(
+      weekly_mean = replace_na(weekly_mean, 0)
+    )
   
   return(dcmp)
 }
@@ -218,16 +221,26 @@ seasonal_decomposition <- function(site_num) {
 ``` {r seasonal_decomposition}
 
 # Get seasonal decomposition for the three compatible sites
-site_1965 <- seasonal_decomposition('1965')
-site_1966 <- seasonal_decomposition('1966')
-site_1975 <- seasonal_decomposition('1975')
- 
+site_1965 <- seasonal_decomposition('1965') |> model(stl = STL(weekly_mean)) # Fit model
+site_1966 <- seasonal_decomposition('1966') |> model(stl = STL(weekly_mean)) # Fit model
+site_1975 <- seasonal_decomposition('1975') |> model(stl = STL(weekly_mean)) # Fit model
+
 # Graph seasonal decomposition for site 1965
 components(site_1965) |> 
   autoplot() +
   labs(
     title = "STL Decomposition of RSV Wastewater Concentration",
     subtitle = "Site 1965: Chittenden County, VT",
+    caption = "Source: CDC National Wastewater Surveillance System"
+  ) +
+  theme_minimal()
+
+# Graph seasonal decomposition for site 1966
+components(site_1966) |> 
+  autoplot() +
+  labs(
+    title = "STL Decomposition of RSV Wastewater Concentration",
+    subtitle = "Site 1966: Chittenden County, VT",
     caption = "Source: CDC National Wastewater Surveillance System"
   ) +
   theme_minimal()
@@ -241,6 +254,65 @@ components(site_1975) |>
     caption = "Source: CDC National Wastewater Surveillance System"
   ) +
   theme_minimal()
+```
+``` {r mann_kendall}
+ts_1965 <- ts(seasonal_decomposition('1965')$weekly_mean, frequency = 52)
+ts_1966 <- ts(seasonal_decomposition('1966')$weekly_mean, frequency = 52)
+ts_1975 <- ts(seasonal_decomposition('1975')$weekly_mean, frequency = 52)
+
+SeasonalMannKendall(ts_1965)
+SeasonalMannKendall(ts_1966)
+SeasonalMannKendall(ts_1975)
+
+site_1965
+```
+```{r to_gam_format}
+
+to_gam <- 
+  function(site_num) {
+    vt_rsv |> 
+    filter(site == site_num) |> 
+    mutate(
+      first_date = min(date),
+      days_elapsed = as.numeric(date - first_date),
+      day_of_year = yday(date),
+      weekly_mean_log = log1p(mean_7day)
+    )
+  }
+```
+
+
+```{r gam}
+site_1965_for_gam <- to_gam('1965')
+site_1966_for_gam <- to_gam('1966')
+site_1975_for_gam <- to_gam('1975')
+
+# Fit gam for site 1965
+gam_1965 <- gam(
+  weekly_mean_log ~ s(days_elapsed) + s(day_of_year, bs = 'cc'),
+  data = site_1965_for_gam,
+  method = 'REML'
+)
+
+# Fit gam for site 1966
+gam_1966 <- gam(
+  weekly_mean_log ~ s(days_elapsed) + s(day_of_year, bs = 'cc'),
+  data = site_1966_for_gam,
+  method = 'REML'
+)
+
+# Fit gam for site 1975
+gam_1975 <- gam(
+  weekly_mean_log ~ s(days_elapsed) + s(day_of_year, bs = 'cc'),
+  data = site_1975_for_gam,
+  method = 'REML'
+)
+
+summary(gam_1965)
+summary(gam_1966)
+summary(gam_1975)
+
+plot(gam_1965, pages = 1, residuals = TRUE)
 ```
 Picked sites 1965, 1966, and 1975 for seasonal decomposition because they have the most complete data
 
