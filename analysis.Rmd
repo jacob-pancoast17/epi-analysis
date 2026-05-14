@@ -5,27 +5,8 @@ date: "2026-05-02"
 output: html_document
 ---
 
-## About Respiratory Syncytial Virus (RSV)
-
-Respiratory syncytial virus (RSV) is a RNA virus belonging to the *Pneumoviridae* family of viruses. RSV is highly contagious, and often misidentified as other common respiratory viruses including the common cold, flu, and COVID-19. Similarly to these other respiratory diseases, RSV infection is most often accompanied by:
-
-* Difficulty breathing
-* Coughing
-* Sneezing
-* Congestion
-* Decreased appetite
-
-as well as less common symptoms, which usually appear in infants, young children, and older adults:
-
-* Bronchiolitis
-  * A lower respiratory tract viral infectious causing swelling and mucus buildups in the bronchiole airways of the lungs leading to inflammation and labored breathing
-* Pneumonia
-  * Infection of the air sacs in both lungs leading to inflammation followed by coughs, phlegm, fever, chills, and labored breathing
-
-Like many other seasonal viruses, RSV starts in the fall in the United States, peaking in the winter (usually around January to December) before case numbers lower as spring approaches.
-
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(echo = FALSE)
 
 pacman::p_load(tidyverse, 
                ggplot2, 
@@ -37,6 +18,53 @@ pacman::p_load(tidyverse,
                mgcv
                )
 ```
+# Introduction
+
+## What is Respiratory Syncytial Virus (RSV)?
+
+Respiratory syncytial virus (RSV) is a RNA virus belonging to the *Pneumoviridae* family of viruses. Similarly to other common respiratory diseases, RSV infection is most often accompanied by (CDC):
+
+* Difficulty breathing
+* Coughing
+* Sneezing
+* Congestion
+* Decreased appetite
+
+as well as less common symptoms, which usually appear in infants, young children, and older adults:
+
+* [Bronchiolitis](https://www.mayoclinic.org/diseases-conditions/bronchiolitis/symptoms-causes/syc-20351565)
+* [Pneumonia](https://www.mayoclinic.org/diseases-conditions/pneumonia/symptoms-causes/syc-20354204)
+
+Like many other seasonal viruses, RSV starts in the fall in the United States, peaking in the winter (usually around January to December) before case numbers lower as spring approaches.
+
+## Why is RSV significant?
+
+Worldwide, RSV is a leading cause of acute lower respiratory infections among both children and elderly. In the United States alone, it was estimated to cause between 60,000 and 160,000 hospitalizations as well as 6,000-10,000 deaths annually among adults aged 65 and over (NCBI 1).
+
+RSV is highly contagious, and often difficult for providers to distinguish from other common respiratory viruses including:
+
+- Common cold (rhinovirus)
+- Flu (influenza)
+- COVID-19
+
+![Flu burden](Flu-Burden.jpg)
+
+According to this chart, the hospitalization rate for RSV may be between 2 - 4.4 times lower than influenza, while the mortality rate may be between 1.05 - 5.2 times lower than influenza. Despite RSV being not too much different in prevalence from the flu, it often goes undiagnosed due to similar symptoms.
+
+More consideration should be given to RSV, since it shares similar mortality rate to the flu yet has higher rates of pneumonia, hospitalization, and extended hospital stays (NCBI 2). Lowering the incidence of RSV would improve health outcomes for at-risk populations and reduce costs associated with prolonged hospital stays.
+
+## Measuring RSV
+
+Multiple limitations exist within the United State's RSV reporting systems in place.
+
+Nationwide testing surrounding RSV remains minimal, complicating the process of data aggregation. There is not yet a central RSV-surveillance system in place nationwide, leading to large gaps of coverage in certain states. 
+
+RSV-NET (RSV-Hospitalization Surveillance Network) is a CDC-led program that monitors laboratory-confirmed RSV hospitalizations. Established in 2018, this program serves 14 states (found [here](https://www.cdc.gov/resp-net/dashboard/)) and over 170 counties. NREVSS (National Respiratory and Eneteric Virus Surveillance System) measures RSV since 1989 through labs who voluntarily report positive RSV tests weekly. While generally more comprehensive, the data obtained through NREVSS is still subject to undercoverage bias.
+
+## RSV in Vermont
+
+![NREVSS Dashboard as of the week ending April 25, 2026](rsv_quintiles.png)
+As of late April 2026, Vermont had one of the highest concentrations 
 
 ``` {r clean_data, include=FALSE}
 vt_rsv <- 
@@ -88,11 +116,11 @@ vt_rsv <-
 
 ```
 
-## R Markdown
+# Methods
 
-This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+### Exploratory Analysis
 
-When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+An initial overview of the data sought to visualize early patterns to note trend and seasonal observations, compare sites, and identify any initial limitations of further analysis.
 
 ```{r exploratory_analysis}
 
@@ -115,14 +143,23 @@ graphs <-
     )
   ) +
   theme() +
+  theme_minimal() +
   facet_wrap(
     facets = vars(facet_label),
     ncol = 2,
-    scales = 'free'
+    scales = 'free_y'
+  ) + labs(
+    title = "RSV Wastewater Concentrations in Vermont",
+    y = "RSV Concentration",
+    x = "Date",
+    color = "Site number",
+    caption = "Source: CDC National Wastewater Surveillance System"
   )
 
 graphs
 ```
+### Peak analysis
+
 ``` {r seasonal_cols, include=FALSE}
 
 vt_rsv <- 
@@ -152,6 +189,8 @@ vt_rsv <-
   )
 ```
 
+Peaks were analyzed per site by grouping the data by season and overlaying those graphs. Due to differences in the start of each season, the graph was normalized so that each season starts at the first date with a significant increase in RSV wastewater concentration (conc > 0).
+
 ``` {r plot_seasonal_peaks}
 
 ggplot(
@@ -164,6 +203,7 @@ ggplot(
       color = season
     )
   ) +
+  theme_minimal() +
   facet_wrap(
     facets = vars(facet_label),
     ncol = 2,
@@ -172,6 +212,9 @@ ggplot(
 
 vt_rsv |> filter(site == '1967') |> arrange(date) |> head(30)
 ```
+
+From that data, information about each individual season at each site was constructed:
+
 ``` {r peak_concentration}
 # Show peaks
 peak_days <- 
@@ -195,6 +238,24 @@ peak_days
 peak_year
 
 ```
+
+### Seasonal decomposition
+
+Seasonal decomposition was used to measure three core components of the time series trend observed:
+
+$$ y_t = S_t + T_t + R_t $$
+$$y_t$$ = Time series data
+$$S_t$$ = Seasonal component
+$$T_t$$ = Trend-cycle component
+$$R_t$$ = Remainder component
+
+* all at time period *t*
+
+
+
+* The **trend** shows the overall movement of the data over the time series.
+* The **seasonal component** shows the seasonal pattern that appears
+* The **residuals** show the difference between the actual time series and the **
 
 ``` {r seasonal_decomposition_func, include=FALSE}
 
@@ -251,6 +312,7 @@ components(site_1975) |>
   labs(
     title = "STL Decomposition of RSV Wastewater Concentration",
     subtitle = "Site 1975: Washington County, VT",
+    x = "Week",
     caption = "Source: CDC National Wastewater Surveillance System"
   ) +
   theme_minimal()
@@ -264,7 +326,6 @@ SeasonalMannKendall(ts_1965)
 SeasonalMannKendall(ts_1966)
 SeasonalMannKendall(ts_1975)
 
-site_1965
 ```
 ```{r to_gam_format}
 
@@ -279,10 +340,12 @@ to_gam <-
       weekly_mean_log = log1p(mean_7day)
     )
   }
+
 ```
 
 
 ```{r gam}
+
 site_1965_for_gam <- to_gam('1965')
 site_1966_for_gam <- to_gam('1966')
 site_1975_for_gam <- to_gam('1975')
@@ -313,30 +376,38 @@ summary(gam_1966)
 summary(gam_1975)
 
 plot(gam_1965, pages = 1, residuals = TRUE)
+
 ```
 Picked sites 1965, 1966, and 1975 for seasonal decomposition because they have the most complete data
 
-## Time Series
+# Limitations
 
+A few of the sites used for analysis had gaps in data. Site 1967 only has data for the present 25-26 season, while sites 1976 and 2350 have data for the 25-26 season and the 24-25 season. Site 1976 also has artifacts from the 23-24 season. For this reason, only the three sites with at least three full years of data (1965, 1966, and 1975) were seasonally decomposed and tested using GAM.
 
-```{r time_series} 
-#counts <- tsibble(vt_rsv, index = date)
+# Discussion
 
-#class(counts)
-
-#counts
-
-```
-
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+we've got peaks and
 
 
 ## Sources
 
 https://www.cdc.gov/rsv/about/index.html
 
+1. https://pmc.ncbi.nlm.nih.gov/articles/PMC11946814/
+2. https://pubmed.ncbi.nlm.nih.gov/38574192/
+
+https://www.cdc.gov/flu-burden/php/about/index.html
+
+https://www.cdc.gov/rsv/php/surveillance/rsv-net.html
+
+https://www.cdc.gov/nrevss/php/dashboard/index.html
+
+https://www.who.int/news-room/fact-sheets/detail/respiratory-syncytial-virus-(rsv)
+
 https://www.mayoclinic.org/diseases-conditions/bronchiolitis/symptoms-causes/syc-20351565
 
 https://www.mayoclinic.org/diseases-conditions/pneumonia/symptoms-causes/syc-20354204
+
+https://otexts.com/fpp3/components.html
 
 
