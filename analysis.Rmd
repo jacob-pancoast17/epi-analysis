@@ -66,6 +66,27 @@ RSV-NET (RSV-Hospitalization Surveillance Network) is a CDC-led program that mon
 ![NREVSS Dashboard as of the week ending April 25, 2026](rsv_quintiles.png)
 As of late April 2026, Vermont had one of the highest concentrations 
 
+
+Had to use pcr_target_avg_conc rather than pcr_target_flowpop_lin because too much data was missing
+
+Population differences are small enough to accomodate this decision.
+
+# Methods
+
+### Wastewater Surveillance
+
+The CDC collects data reported by state and local health departments through the National Wastewater Surveillance System (NWSS) supported by funding through the Epidemiology and Laboratory Capacity for the Prevention and Control of Emerging Infectious Diseases Cooperative Agreement (10).
+
+![NWSS sites which report RSV concentrations across the United States as of May 14, 2026 (11)](nwss_sites.png)
+
+Sites are selected by local governments to increase wastewater surveillance and population coverage. Many health departments prioritize enrolling sites with a high social vulnerability index to better represent vulnerable populations who may be underrepresented in clinical tests for respiratory viruses. 89% of sites are located at a wastewater treatment plan(12).
+
+Wastewater collection differs between sites. Some sites may sample untreated wastewater (sewage and stormwater) or primary sludge (suspended solids from wastewater). Sampling methods also differ, including grab samples (from a point in time) or composite samples (aggregated grab samples). Sampling frequency also differs between sites (12). For each sample, various metrics are recorded including flow rate, virus type, viral quantification, and contamination measurements. Each site is also associated with a region and population served (11, 12). Viral quantification is measured using repeated PCR tests. All data is then submitted to the CDC.
+
+### Analytic Methods
+
+Data cleaning, analyses, and visualizations were conducted using R (version 4.5.2; R Foundation). Prior to in-depth analysis, data cleaning and exploratory visualization was performed. During this step a 7-day rolling average concentration was calculated for each data point to reduce noise and artifacts.
+
 ``` {r clean_data, include=FALSE}
 vt_rsv <- 
   read.csv("CDC_RSV_Wastewater_Data.csv") |>
@@ -90,10 +111,6 @@ vt_rsv <-
 
 ```
 
-Had to use pcr_target_avg_conc rather than pcr_target_flowpop_lin because too much data was missing
-
-Population differences are small enough to accomodate this decision.
-
 ``` {r rolling_avg, include=FALSE}
 
 # Calculate the rolling average column for data visualization
@@ -116,15 +133,9 @@ vt_rsv <-
 
 ```
 
-# Methods
-
-### Exploratory Analysis
-
-An initial overview of the data sought to visualize early patterns to note trend and seasonal observations, compare sites, and identify any initial limitations of further analysis.
-
 ```{r exploratory_analysis}
 
-graphs <- 
+exploratory <- 
   ggplot(
     data = vt_rsv
   ) +
@@ -155,10 +166,11 @@ graphs <-
     color = "Site number",
     caption = "Source: CDC National Wastewater Surveillance System"
   )
-
-graphs
 ```
-### Peak analysis
+
+#### Peak Comparison
+
+After data cleaning and exploratory analysis (Figure A), peak analysis was performed to identify per-site and per-season factors. Samples were grouped by respiratory virus season (October through May). Season boundaries were defined empirically using wastewater concentration thresholds. Season onset was defined as the first sample date with a concentration greater than the baseline of 0 following an off-season period, while season conclusion was defined as the last sample date with a concentration of 0 following an on-season period. Per site, seasons were compared using elapsed days since season onset to allow for peak comparison across seasons. 
 
 ``` {r seasonal_cols, include=FALSE}
 
@@ -187,13 +199,13 @@ vt_rsv <-
       ),
     .by = c(season, site)
   )
-```
 
-Peaks were analyzed per site by grouping the data by season and overlaying those graphs. Due to differences in the start of each season, the graph was normalized so that each season starts at the first date with a significant increase in RSV wastewater concentration (conc > 0).
+```
 
 ``` {r plot_seasonal_peaks}
 
-ggplot(
+seasonal_peaks <- 
+  ggplot(
   data = vt_rsv
 ) +
   geom_line(
@@ -210,13 +222,10 @@ ggplot(
     scales = 'free_y'
   )
 
-vt_rsv |> filter(site == '1967') |> arrange(date) |> head(30)
 ```
 
-From that data, information about each individual season at each site was constructed:
+``` {r}
 
-``` {r peak_concentration}
-# Show peaks
 peak_days <- 
   vt_rsv |> 
   summarise(
@@ -234,28 +243,9 @@ peak_year <-
     .by = c(site)
   )
 
-peak_days
-peak_year
-
 ```
 
-### Seasonal decomposition
-
-Seasonal decomposition was used to measure three core components of the time series trend observed:
-
-$$ y_t = S_t + T_t + R_t $$
-$$y_t$$ = Time series data
-$$S_t$$ = Seasonal component
-$$T_t$$ = Trend-cycle component
-$$R_t$$ = Remainder component
-
-* all at time period *t*
-
-
-
-* The **trend** shows the overall movement of the data over the time series.
-* The **seasonal component** shows the seasonal pattern that appears
-* The **residuals** show the difference between the actual time series and the **
+#### Seasonal Decomposition
 
 ``` {r seasonal_decomposition_func, include=FALSE}
 
@@ -279,12 +269,77 @@ seasonal_decomposition <- function(site_num) {
 
 ```
 
-``` {r seasonal_decomposition}
+To measure overall trends across each site, seasonal decomposition was used to decompose the trend into its trend-cycle, seasonal, and remainder components. Only the three sites containing consistent data spanning *$n\qe3$* years (sites 1965, 1966, and 1975) were used for decomposition to reliably observe a trend spanning multiple years.
+
+``` {r seasonal_decomposition, include=FALSE}
 
 # Get seasonal decomposition for the three compatible sites
 site_1965 <- seasonal_decomposition('1965') |> model(stl = STL(weekly_mean)) # Fit model
 site_1966 <- seasonal_decomposition('1966') |> model(stl = STL(weekly_mean)) # Fit model
 site_1975 <- seasonal_decomposition('1975') |> model(stl = STL(weekly_mean)) # Fit model
+
+```
+
+Per site and season, dates were grouped by week and averaged to create the continuous, regular time intervals required for this method. Gaps were filled with *Concentration = 0* for *n = 3* weeks for site 1966 for the weeks of April 21, 2024; April 28, 2024; and May 5; 2024 due to missing data. Prior to decomposition, RSV concentrations were transformed by natural log to normalize the skew in the data and convert the multiplicative decomposition into additive decomposition.
+
+#### General Additive Model (GAM)
+
+A general additive model (GAM) was used to model the relationship between date and wastewater RSV concentrations over time, per site. As with seasonal decomposition, the same *n = 3* sites were used (1965, 1966, 1967) to provide enough data to build the model. Furthermore, the RSV concentrations were again transformed by natural log.
+
+# Results
+
+### Exploratory Analysis
+
+An initial overview of the data sought to visualize early patterns to note trend and seasonal observations, compare sites, and identify any initial limitations of further analysis.
+
+``` {r visualize_exploratory}
+exploratory
+```
+
+### Peak analysis 
+
+Peaks were analyzed per site by grouping the data by season and overlaying those graphs. Due to differences in the start of each season, the graph was normalized so that each season starts at the first date with a significant increase in RSV wastewater concentration (conc > 0).
+
+Include start of each season
+
+``` {r visualize_peaks}
+
+seasonal_peaks
+
+vt_rsv |> filter(site == '1967') |> arrange(date) |> head(30)
+
+```
+
+From that data, information about each individual season at each site was constructed:
+Using this method,  individual info about peaks across seasons was garnered.
+
+``` {r peak_concentration}
+
+peak_days
+peak_year
+
+```
+
+### Seasonal decomposition
+
+Seasonal decomposition was used to measure three core components of the time series trend observed:
+
+$$ y_t = S_t + T_t + R_t $$
+$y_t$ = Time series data
+
+$S_t$ = Seasonal component
+
+$T_t$ = Trend-cycle component
+
+$R_t$ = Remainder component
+
+at time period *t*
+
+* The **trend** shows the overall movement of the data over the time series.
+* The **seasonal component** shows the seasonal pattern that appears
+* The **residuals** show the difference between the actual time series and the **
+
+``` {r show_seasonal_decomposition}
 
 # Graph seasonal decomposition for site 1965
 components(site_1965) |> 
@@ -317,16 +372,7 @@ components(site_1975) |>
   ) +
   theme_minimal()
 ```
-``` {r mann_kendall}
-ts_1965 <- ts(seasonal_decomposition('1965')$weekly_mean, frequency = 52)
-ts_1966 <- ts(seasonal_decomposition('1966')$weekly_mean, frequency = 52)
-ts_1975 <- ts(seasonal_decomposition('1975')$weekly_mean, frequency = 52)
 
-SeasonalMannKendall(ts_1965)
-SeasonalMannKendall(ts_1966)
-SeasonalMannKendall(ts_1975)
-
-```
 ```{r to_gam_format}
 
 to_gam <- 
@@ -384,6 +430,8 @@ Picked sites 1965, 1966, and 1975 for seasonal decomposition because they have t
 
 A few of the sites used for analysis had gaps in data. Site 1967 only has data for the present 25-26 season, while sites 1976 and 2350 have data for the 25-26 season and the 24-25 season. Site 1976 also has artifacts from the 23-24 season. For this reason, only the three sites with at least three full years of data (1965, 1966, and 1975) were seasonally decomposed and tested using GAM.
 
+A known limitation of the data according to collection methods are that different sampling locations may be collected at different frequencies and different laboratory methods. As such, it was not advised to compare wastewater concentrations across sites. Therefore we will only compare relative trends across sites.
+
 # Discussion
 
 we've got peaks and
@@ -409,5 +457,11 @@ https://www.mayoclinic.org/diseases-conditions/bronchiolitis/symptoms-causes/syc
 https://www.mayoclinic.org/diseases-conditions/pneumonia/symptoms-causes/syc-20354204
 
 https://otexts.com/fpp3/components.html
+
+10. https://data.cdc.gov/Public-Health-Surveillance/CDC-Wastewater-Data-for-RSV/45cq-cw4i/about_data
+
+11. https://www.cdc.gov/wastewater/about/index.html
+
+12. https://pmc.ncbi.nlm.nih.gov/articles/PMC11103741/
 
 
