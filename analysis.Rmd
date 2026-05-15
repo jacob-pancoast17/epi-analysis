@@ -183,7 +183,11 @@ vt_rsv <-
       month(date) %in% 10:12 ~ paste0(year(date), "_", year(date)+1),
       month(date) %in% 1:5 ~ paste0(year(date)-1, "_", year(date)),
       TRUE ~ "off-season"
-    )
+    ),
+    starting_year = case_when(
+      month(date) %in% 6:12 ~ year(date),
+      month(date) %in% 1:5 ~ year(date) - 1,
+    ),
   ) |> 
   
   # Add more info about that season
@@ -197,13 +201,36 @@ vt_rsv <-
       as.numeric(date - start_of_szn),
       as.numeric(NA)
       ),
+    days_since_prev_off_szn = date - make_date(year = starting_year, month = 6, day = 1),
     .by = c(season, site)
   )
+
+vt_rsv
 
 ```
 
 ``` {r plot_seasonal_peaks}
 
+# Graph offset between seasons
+seasonal_offset <- 
+  ggplot(
+    data = vt_rsv
+  ) +
+  geom_line(
+    mapping = aes(
+      x = days_since_prev_off_szn,
+      y = mean_7day,
+      color = season
+    )
+  ) +
+  theme_minimal() +
+  facet_wrap(
+    facets = vars(facet_label),
+    ncol = 2,
+    scales = 'free_y'
+  )
+
+# Seasonal data by days since start of season
 seasonal_peaks <- 
   ggplot(
   data = vt_rsv
@@ -296,13 +323,13 @@ An initial overview of the data sought to visualize early patterns to note trend
 exploratory
 ```
 
+Exploratory visualizations revealed only sites 1965, 1966, and 1975 contained three full seasons worth of data.
+
 ### Peak analysis 
 
-Peaks were analyzed per site by grouping the data by season and overlaying those graphs. Due to differences in the start of each season, the graph was normalized so that each season starts at the first date with a significant increase in RSV wastewater concentration (conc > 0).
-
-Include start of each season
-
 ``` {r visualize_peaks}
+
+seasonal_offset
 
 seasonal_peaks
 
@@ -319,6 +346,12 @@ peak_days
 peak_year
 
 ```
+
+A total of *n = 4* disjoint respiratory virus seasons were observed among the six sites. Only sites 1965 and 1975 report on half of the 2022-2023 season. Sites 1965, 1966, 1975, and 1976 report on the 2023-2024 season, however data for site 1976 is cut off. All sites except 1967 report on the 2024-2025 season, and all sites report on the 2025-2026 season.
+
+Sites 1965, 1966, and 1975 report high spikes in RSV concentration during mid-late season 2023-2024. Excluding sites 1976 and 2350, RSV concentrations seem to be highest overall in the 2023-2024 and 2025-2026 seasons.
+
+
 
 ### Seasonal decomposition
 
