@@ -15,7 +15,8 @@ pacman::p_load(tidyverse,
                fable,
                feasts,
                Kendall,
-               mgcv
+               mgcv,
+               knitr
                )
 ```
 # Introduction
@@ -35,7 +36,7 @@ as well as less common symptoms, which usually appear in infants, young children
 * [Bronchiolitis](https://www.mayoclinic.org/diseases-conditions/bronchiolitis/symptoms-causes/syc-20351565)
 * [Pneumonia](https://www.mayoclinic.org/diseases-conditions/pneumonia/symptoms-causes/syc-20354204)
 
-Like many other seasonal viruses, RSV starts in the fall in the United States, peaking in the winter (usually around January to December) before case numbers lower as spring approaches.
+Like many other seasonal viruses, RSV starts in the fall in the United States, peaking in the winter (usually around January to February) before case numbers lower as spring approaches.
 
 ## Why is RSV significant?
 
@@ -253,22 +254,44 @@ seasonal_peaks <-
 
 ``` {r}
 
+# Compare peak days across sites and seasons
 peak_days <- 
   vt_rsv |> 
   summarise(
-    max_rsv_conc = max(mean_7day, na.rm = TRUE),
     peak_day = start_of_szn[which.max(mean_7day)] + days(days_since_start_of_szn[which.max(mean_7day)]),
-    szn_length = end_of_szn[which.max(mean_7day)] - start_of_szn[which.max(mean_7day)],
     .by = c(season, site)
   ) |> 
-  filter(season != 'off-season')
+  filter(season != 'off-season') |> 
+  pivot_wider(
+    names_from = season,
+    values_from = c(peak_day)
+  )
 
+# Compare peak year for each site
 peak_year <- 
   vt_rsv |> 
   summarise(
     year = season[which.max(mean_7day)],
     .by = c(site)
   )
+
+# Mean season lengths across sites
+szn_lengths <- 
+  vt_rsv |> 
+  summarise(
+    szn_length = end_of_szn[which.max(mean_7day)] - start_of_szn[which.max(mean_7day)],
+    .by = c(season, site)
+  ) |> 
+  filter(season != 'off-season') |> 
+  group_by(season) |> 
+  pivot_wider(names_from = site,
+              values_from = szn_length,
+              id_cols = season) |> 
+  rowwise() |> 
+  mutate(avg = round(mean(c_across('1965':'2350'), na.rm = TRUE), digits = 2)) |> 
+  ungroup()
+  
+szn_lengths
 
 ```
 
@@ -296,22 +319,28 @@ seasonal_decomposition <- function(site_num) {
 
 ```
 
-To measure overall trends across each site, seasonal decomposition was used to decompose the trend into its trend-cycle, seasonal, and remainder components. Only the three sites containing consistent data spanning *$n\qe3$* years (sites 1965, 1966, and 1975) were used for decomposition to reliably observe a trend spanning multiple years.
+To measure overall trends across each site, seasonal decomposition was used to decompose the trend into its trend-cycle, seasonal, and remainder components. Only the three sites containing consistent data spanning *$n \qe 3$* years (sites 1965, 1966, and 1975) were used for decomposition to reliably observe a trend spanning multiple years.
 
 ``` {r seasonal_decomposition, include=FALSE}
 
 # Get seasonal decomposition for the three compatible sites
-site_1965 <- seasonal_decomposition('1965') |> model(stl = STL(weekly_mean)) # Fit model
-site_1966 <- seasonal_decomposition('1966') |> model(stl = STL(weekly_mean)) # Fit model
-site_1975 <- seasonal_decomposition('1975') |> model(stl = STL(weekly_mean)) # Fit model
+site_1965 <- seasonal_decomposition('1965') |> 
+  model(stl = STL(weekly_mean)) |>  # Fit model
+  ungroup()
+site_1966 <- seasonal_decomposition('1966') |> 
+  model(stl = STL(weekly_mean)) |>  # Fit model
+  ungroup()
+site_1975 <- seasonal_decomposition('1975') |> 
+  model(stl = STL(weekly_mean)) |>  # Fit model
+  ungroup()
 
 ```
 
 Per site and season, dates were grouped by week and averaged to create the continuous, regular time intervals required for this method. Gaps were filled with *Concentration = 0* for *n = 3* weeks for site 1966 for the weeks of April 21, 2024; April 28, 2024; and May 5; 2024 due to missing data. Prior to decomposition, RSV concentrations were transformed by natural log to normalize the skew in the data and convert the multiplicative decomposition into additive decomposition.
 
-#### General Additive Model (GAM)
+#### Generalized Additive Model (GAM)
 
-A general additive model (GAM) was used to model the relationship between date and wastewater RSV concentrations over time, per site. As with seasonal decomposition, the same *n = 3* sites were used (1965, 1966, 1967) to provide enough data to build the model. Furthermore, the RSV concentrations were again transformed by natural log.
+A general additive model (GAM) was used to model the relationship between date and wastewater RSV concentrations over time, per site. As with seasonal decomposition, the same *n = 3* sites were used (1965, 1966, 1975) to provide enough data to build the model. Furthermore, the RSV concentrations were again transformed by natural log.
 
 # Results
 
@@ -323,33 +352,59 @@ An initial overview of the data sought to visualize early patterns to note trend
 exploratory
 ```
 
-Exploratory visualizations revealed only sites 1965, 1966, and 1975 contained three full seasons worth of data.
+Exploratory visualizations revealed clear seasonal patterns around sites consistent with known information surrounding RSV epidemiology. Concentrations begin to increase in the Fall and peak typically in January or February before declining again in April to May. This pattern was consistent across all sites. Only sites 1965, 1966, and 1975 contained three full seasons worth of data, providing enough data for further statistical tests (seasonal decomposition and GAM).
 
 ### Peak analysis 
 
-``` {r visualize_peaks}
+``` {r visualize_seasonal_offset}
 
 seasonal_offset
 
+```
+
+Comparison of seasonal peak offsets reveal generally earlier seasons have earlier rises in RSV concentrations. The 2023-2024 season rises and peaks early in sites 1965, 1966, and 1975 before the 2024-2025 and 2025-2026 seasons rise. Peaks in the latter seasons appear to be between 30-50 (**QUANTIFY THIS**) days later than peaks in the 2023-2024 season. Data for site 2350 also supports this trend, excluding an early spike in concentration during the 2025-2026 season. Site 1976 maintains fairly similar peaks between the 2024-2025 season and the 2025-2026 season.
+
+``` {r visualize_seasonal_peaks}
+
 seasonal_peaks
 
-vt_rsv |> filter(site == '1967') |> arrange(date) |> head(30)
-
 ```
-
-From that data, information about each individual season at each site was constructed:
-Using this method,  individual info about peaks across seasons was garnered.
-
-``` {r peak_concentration}
-
-peak_days
-peak_year
-
-```
-
 A total of *n = 4* disjoint respiratory virus seasons were observed among the six sites. Only sites 1965 and 1975 report on half of the 2022-2023 season. Sites 1965, 1966, 1975, and 1976 report on the 2023-2024 season, however data for site 1976 is cut off. All sites except 1967 report on the 2024-2025 season, and all sites report on the 2025-2026 season.
 
 Sites 1965, 1966, and 1975 report high spikes in RSV concentration during mid-late season 2023-2024. Excluding sites 1976 and 2350, RSV concentrations seem to be highest overall in the 2023-2024 and 2025-2026 seasons.
+
+
+The mean season lengths of each seasons across sites were as follows:
+
+``` {r season_lengths}
+
+szn_lengths |> 
+  kable()
+
+```
+
+The 2023-2024 season was the longest season on average of the last three years.
+
+The peak days for each season are as follows:
+
+``` {r peak_day}
+
+peak_days |> 
+  kable()
+
+```
+
+In the 2022-2023, 2023-2024, 2024-2025 and 2025-2026 seasons the most common peak ranges were March, February, February, and late February.
+
+The peak year for each site are as follows:
+
+``` {r peak_year}
+
+peak_year |> 
+  kable()
+
+```
+
 
 
 
@@ -360,19 +415,44 @@ Seasonal decomposition was used to measure three core components of the time ser
 $$ y_t = S_t + T_t + R_t $$
 $y_t$ = Time series data
 
-$S_t$ = Seasonal component
+$S_t$ = The **seasonal component** shows the seasonal pattern occurring over time.
 
-$T_t$ = Trend-cycle component
+$T_t$ = The **trend-cycle component** shows the overall movement of the data over the time series.
 
-$R_t$ = Remainder component
+$R_t$ = The **remainder** component explains the difference between $y_t$ and $S_t + T_t$.
 
 at time period *t*
 
-* The **trend** shows the overall movement of the data over the time series.
-* The **seasonal component** shows the seasonal pattern that appears
-* The **residuals** show the difference between the actual time series and the **
-
 ``` {r show_seasonal_decomposition}
+
+# Extract the max week for each year
+decomp_peaks_1965 <- 
+  components(site_1965) |> 
+  index_by(year = ~ year(.)) |> 
+  summarise(
+    week_max = week[which.max(season_year)],
+    max_season_year = max(season_year, na.rm = TRUE)
+  )
+
+# Extract the max week for each year
+decomp_peaks_1966 <- 
+  components(site_1966) |> 
+  index_by(year = ~ year(.)) |> 
+  summarise(
+    week_max = week[which.max(season_year)],
+    max_season_year = max(season_year, na.rm = TRUE)
+  )
+
+decomp_peaks_1965
+
+# Extract the max week for each year
+decomp_peaks_1975 <- 
+  components(site_1975) |> 
+  index_by(year = ~ year(.)) |> 
+  summarise(
+    week_max = week[which.max(season_year)],
+    max_season_year = max(season_year, na.rm = TRUE)
+  )
 
 # Graph seasonal decomposition for site 1965
 components(site_1965) |> 
@@ -405,6 +485,41 @@ components(site_1975) |>
   ) +
   theme_minimal()
 ```
+
+``` {r ymd_to_md}
+
+# Peak_as_month_date takes a decomp_peaks_(site number) and returns the mean peak date
+# as a month-date format
+
+peak_as_month_date <- 
+  function(peaks) {
+  
+    max_weeks <- 
+      (peaks |> 
+         
+         filter(
+           year != 2023 # Filter out 2023 with truncated data
+           ) |> 
+         
+         mutate(
+           week_max = make_date(
+             year = case_when(
+               month(week_max) < 6 ~ 2024, # Standardize year for the sake of averaging
+               month(week_max) > 6 ~ 2023
+             ), 
+             month = month(week_max), # Keep the month and date
+             day = day(week_max)
+             )
+           )
+       )$week_max # Extract only the week_max
+    
+    mean = mean(max_weeks) # Calculate the mean peak date
+    
+    return(format(mean, "%m-%d"))
+  }
+```
+
+For sites 1965, 1966, and 1975 over the last three years, seasonal peaks occur on averange on `r peak_as_month_date(decomp_peaks_1965)`, `r peak_as_month_date(decomp_peaks_1966)`, and `r peak_as_month_date(decomp_peaks_1975)` respectively.
 
 ```{r to_gam_format}
 
