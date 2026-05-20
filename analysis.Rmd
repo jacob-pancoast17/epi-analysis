@@ -104,11 +104,11 @@ vt_rsv <-
          date = sample_collect_date,
          rsv_conc = pcr_target_avg_conc) |> 
   
-  mutate(date = mdy(date), # date
+  mutate(date = ymd(date), # date
          rsv_conc = as.numeric(gsub(",", "", rsv_conc)), # convert to a numeric column
          county = as.factor(county), # convert to a factor
          site = as.factor(site), # convert to a factor
-         facet_label = paste0("Site ", site, ": ", county, " county")) # create a title column 
+         facet_label = paste0("Site ", site, ": ", county, " county")) # create a title column
 
 ```
 
@@ -173,6 +173,10 @@ exploratory <-
 
 After data cleaning and exploratory analysis (Figure A), peak analysis was performed to identify per-site and per-season factors. Samples were grouped by respiratory virus season (October through May). Season boundaries were defined empirically using wastewater concentration thresholds. Season onset was defined as the first sample date with a concentration greater than the baseline of 0 following an off-season period, while season conclusion was defined as the last sample date with a concentration of 0 following an on-season period. Per site, seasons were compared using elapsed days since season onset to allow for peak comparison across seasons. 
 
+Peak years were calculated as the year containing the highest RSV concentration across the entire data set (Table 3)
+
+JUNE 1ST
+
 ``` {r seasonal_cols, include=FALSE}
 
 vt_rsv <- 
@@ -205,8 +209,6 @@ vt_rsv <-
     days_since_prev_off_szn = date - make_date(year = starting_year, month = 6, day = 1),
     .by = c(season, site)
   )
-
-vt_rsv
 
 ```
 
@@ -252,7 +254,7 @@ seasonal_peaks <-
 
 ```
 
-``` {r}
+``` {r create_tables, include=FALSE}
 
 # Compare peak days across sites and seasons
 peak_days <- 
@@ -265,7 +267,24 @@ peak_days <-
   pivot_wider(
     names_from = season,
     values_from = c(peak_day)
+  ) 
+
+# Add the average row
+peak_days <- 
+  peak_days |>
+  bind_rows(
+    peak_days |> 
+      summarise(
+        across(
+          where(is.Date),
+          ~ mean(.x, na.rm = TRUE)
+        )
+      ) |> 
+      mutate(
+        site = "average"
+      )
   )
+  
 
 # Compare peak year for each site
 peak_year <- 
@@ -290,8 +309,6 @@ szn_lengths <-
   rowwise() |> 
   mutate(avg = round(mean(c_across('1965':'2350'), na.rm = TRUE), digits = 2)) |> 
   ungroup()
-  
-szn_lengths
 
 ```
 
@@ -327,13 +344,84 @@ To measure overall trends across each site, seasonal decomposition was used to d
 site_1965 <- seasonal_decomposition('1965') |> 
   model(stl = STL(weekly_mean)) |>  # Fit model
   ungroup()
+
 site_1966 <- seasonal_decomposition('1966') |> 
   model(stl = STL(weekly_mean)) |>  # Fit model
   ungroup()
+
 site_1975 <- seasonal_decomposition('1975') |> 
   model(stl = STL(weekly_mean)) |>  # Fit model
   ungroup()
 
+```
+
+``` {r get_decomposition_peaks, include=FALSE}
+
+# Extract_decomposition_peaks returns the peak weeks for a site
+# from seasonal decomposition
+
+extract_decomposition_peaks <- 
+  function(site) {
+    
+    decomp_peaks <- 
+      components(site) |> 
+      
+      index_by(year = ~ year(.)) |> 
+      
+      summarise(
+        week_max = week[which.max(season_year)], # Get the peak week per season
+        max_season_year = max(season_year, na.rm = TRUE) # Get the value of the max peak
+        )
+    
+    return(decomp_peaks)
+  }
+
+```
+
+``` {r get_peaks_from_decomposition, include=FALSE}
+
+decomp_peaks_1965 <- 
+  extract_decomposition_peaks(site_1965)
+  
+decomp_peaks_1966 <- 
+  extract_decomposition_peaks(site_1966)
+
+decomp_peaks_1975 <- 
+  extract_decomposition_peaks(site_1975)
+
+```
+
+``` {r ymd_to_md, include=FALSE}
+
+# Peak_as_month_date takes a decomp_peaks_(site number) and returns the mean peak date
+# as a month-date format
+
+peak_as_month_date <- 
+  function(peaks) {
+  
+    max_weeks <- 
+      (peaks |> 
+         
+         filter(
+           year != 2023 # Filter out 2023 with truncated data
+           ) |> 
+         
+         mutate(
+           week_max = make_date(
+             year = case_when(
+               month(week_max) < 6 ~ 2024, # Standardize year for the sake of averaging
+               month(week_max) > 6 ~ 2023
+             ), 
+             month = month(week_max), # Keep the month and date
+             day = day(week_max)
+             )
+           )
+       )$week_max # Extract only the week_max
+    
+    mean = mean(max_weeks) # Calculate the mean peak date
+    
+    return(format(mean, "%m-%d"))
+  }
 ```
 
 Per site and season, dates were grouped by week and averaged to create the continuous, regular time intervals required for this method. Gaps were filled with *Concentration = 0* for *n = 3* weeks for site 1966 for the weeks of April 21, 2024; April 28, 2024; and May 5; 2024 due to missing data. Prior to decomposition, RSV concentrations were transformed by natural log to normalize the skew in the data and convert the multiplicative decomposition into additive decomposition.
@@ -341,6 +429,12 @@ Per site and season, dates were grouped by week and averaged to create the conti
 #### Generalized Additive Model (GAM)
 
 A general additive model (GAM) was used to model the relationship between date and wastewater RSV concentrations over time, per site. As with seasonal decomposition, the same *n = 3* sites were used (1965, 1966, 1975) to provide enough data to build the model. Furthermore, the RSV concentrations were again transformed by natural log.
+
+- used weekly mean log
+
+- used smoothing spline
+
+- chose bs = cc for cyclic smoothing spline
 
 # Results
 
@@ -362,14 +456,14 @@ seasonal_offset
 
 ```
 
-Comparison of seasonal peak offsets reveal generally earlier seasons have earlier rises in RSV concentrations. The 2023-2024 season rises and peaks early in sites 1965, 1966, and 1975 before the 2024-2025 and 2025-2026 seasons rise. Peaks in the latter seasons appear to be between 30-50 (**QUANTIFY THIS**) days later than peaks in the 2023-2024 season. Data for site 2350 also supports this trend, excluding an early spike in concentration during the 2025-2026 season. Site 1976 maintains fairly similar peaks between the 2024-2025 season and the 2025-2026 season.
+Comparison of seasonal peak offsets reveal generally seasons occurring earlier in the study period exhibit earlier onset of RSV concentration increases. The 2023-2024 season rises and peaks early in sites 1965, 1966, and 1975 before the 2024-2025 and 2025-2026 seasons rise. Peaks in the latter seasons appear to be between 30-50 (**QUANTIFY THIS**) days later than peaks in the 2023-2024 season. Data for site 2350 also supports this trend, excluding an early spike in concentration during the 2025-2026 season. Site 1976 maintains fairly similar peaks between the 2024-2025 season and the 2025-2026 season.
 
 ``` {r visualize_seasonal_peaks}
 
 seasonal_peaks
 
 ```
-A total of *n = 4* disjoint respiratory virus seasons were observed among the six sites. Only sites 1965 and 1975 report on half of the 2022-2023 season. Sites 1965, 1966, 1975, and 1976 report on the 2023-2024 season, however data for site 1976 is cut off. All sites except 1967 report on the 2024-2025 season, and all sites report on the 2025-2026 season.
+A total of *n = 4* disjoint respiratory virus seasons were observed among the six sites. Only sites 1965 and 1975 report on all *n = 4* seasons, including truncated data from the 2022-2023 season. Site 1966 excludes data from the 2022-2023 season and reports on the following seasons.
 
 Sites 1965, 1966, and 1975 report high spikes in RSV concentration during mid-late season 2023-2024. Excluding sites 1976 and 2350, RSV concentrations seem to be highest overall in the 2023-2024 and 2025-2026 seasons.
 
@@ -406,8 +500,6 @@ peak_year |>
 ```
 
 
-
-
 ### Seasonal decomposition
 
 Seasonal decomposition was used to measure three core components of the time series trend observed:
@@ -424,35 +516,6 @@ $R_t$ = The **remainder** component explains the difference between $y_t$ and $S
 at time period *t*
 
 ``` {r show_seasonal_decomposition}
-
-# Extract the max week for each year
-decomp_peaks_1965 <- 
-  components(site_1965) |> 
-  index_by(year = ~ year(.)) |> 
-  summarise(
-    week_max = week[which.max(season_year)],
-    max_season_year = max(season_year, na.rm = TRUE)
-  )
-
-# Extract the max week for each year
-decomp_peaks_1966 <- 
-  components(site_1966) |> 
-  index_by(year = ~ year(.)) |> 
-  summarise(
-    week_max = week[which.max(season_year)],
-    max_season_year = max(season_year, na.rm = TRUE)
-  )
-
-decomp_peaks_1965
-
-# Extract the max week for each year
-decomp_peaks_1975 <- 
-  components(site_1975) |> 
-  index_by(year = ~ year(.)) |> 
-  summarise(
-    week_max = week[which.max(season_year)],
-    max_season_year = max(season_year, na.rm = TRUE)
-  )
 
 # Graph seasonal decomposition for site 1965
 components(site_1965) |> 
@@ -486,40 +549,11 @@ components(site_1975) |>
   theme_minimal()
 ```
 
-``` {r ymd_to_md}
-
-# Peak_as_month_date takes a decomp_peaks_(site number) and returns the mean peak date
-# as a month-date format
-
-peak_as_month_date <- 
-  function(peaks) {
-  
-    max_weeks <- 
-      (peaks |> 
-         
-         filter(
-           year != 2023 # Filter out 2023 with truncated data
-           ) |> 
-         
-         mutate(
-           week_max = make_date(
-             year = case_when(
-               month(week_max) < 6 ~ 2024, # Standardize year for the sake of averaging
-               month(week_max) > 6 ~ 2023
-             ), 
-             month = month(week_max), # Keep the month and date
-             day = day(week_max)
-             )
-           )
-       )$week_max # Extract only the week_max
-    
-    mean = mean(max_weeks) # Calculate the mean peak date
-    
-    return(format(mean, "%m-%d"))
-  }
-```
-
 For sites 1965, 1966, and 1975 over the last three years, seasonal peaks occur on averange on `r peak_as_month_date(decomp_peaks_1965)`, `r peak_as_month_date(decomp_peaks_1966)`, and `r peak_as_month_date(decomp_peaks_1975)` respectively.
+
+Site 1965 shows a dip in the overall trend of the data during summer 2024. From there the trend continues to increase steadily throughout 2025 and early 2026, where it is currently highest. Site 1966 rises steadily peaks during the 2023-2024 respiratory virus season and has steadily decreased since. Site 1975 also exhibits a dip in the data during the summer of 2024 before peaking again during respiratory virus season 2024-2025 and has steadily declined since then. All sites showed a clear seasonal cycle with a fluctuating long term trend.
+
+Observing seasonal decomposition, we can see after separating the data for site 1965 into the trend, seasonal, and remainder components that the overall trend is increasing for the 2026 season. For site 1966, since early 2024 the overall trend has remained about constant. For site 1975, the trend dramatically decreases during the summer months and is still approaching its peak for the 2025-2026 season.
 
 ```{r to_gam_format}
 
@@ -541,6 +575,7 @@ to_gam <-
 ```{r gam}
 
 site_1965_for_gam <- to_gam('1965')
+site_1965_for_gam
 site_1966_for_gam <- to_gam('1966')
 site_1975_for_gam <- to_gam('1975')
 
@@ -570,9 +605,17 @@ summary(gam_1966)
 summary(gam_1975)
 
 plot(gam_1965, pages = 1, residuals = TRUE)
+plot(gam_1966, pages = 1, residuals = TRUE)
+plot(gam_1975, pages = 1, residuals = TRUE)
 
 ```
-Picked sites 1965, 1966, and 1975 for seasonal decomposition because they have the most complete data
+The general additive model sums a smoothing spline of days elapsed since March 3, 2023 to a smoothing cyclic cubic spline of the day of the year. For all three sites, data was consistent.
+
+The long-term trend component (days elapsed) shows peaks corresponding to the 2023-2024 and 2024-2025 winter seasons with dips during the summer seasons. The rise towards the right edge of the graph represents the current 2025-2026 season. Towards the edge of the graph the confidence interval widens significantly.
+
+The seasonal component shows a peak in RSV concentrations within the first fifty days of the year, with a sharp decrease that bottoms out around mid-July. Concentrations begin to rise again gradually, before sharply increasing beginning in late October.
+
+For all sets of graphs, confidence intervals tend to widen during the summer months.
 
 # Limitations
 
@@ -580,9 +623,47 @@ A few of the sites used for analysis had gaps in data. Site 1967 only has data f
 
 A known limitation of the data according to collection methods are that different sampling locations may be collected at different frequencies and different laboratory methods. As such, it was not advised to compare wastewater concentrations across sites. Therefore we will only compare relative trends across sites.
 
+2022-2023 season sucks
+some sites don't report all the data
+no hospitalizations 
+data only covers 4 years maximum which really isn't enough
+
 # Discussion
 
-we've got peaks and
+RSV epidemiology follows a consistent seasonal pattern across the six reporting sites in Vermont from 2023-2026. At a very low p value of <2e-16 [ INSERT CODE HERE SO THIS IS DYNAMIC] (less than machine epsilon) we can reject H0 with overwhelmingly strong evidence at ⍺ = 0.05 and conclude that there is a meaningful non-linear relationship in the data between weekly concentrations and the day of the year.
+
+For the 2025-2026 respiratory virus season, the CDC estimated peak hospitalizations for RSV would be very similar to last year’s, the 2024-2025 season (13). RSV surveillance is limited to wastewater monitoring and positive test results, which focus on infectivity rather than pathogenicity. Hospitalizations better model pathogenicity as ~80% of RSV infections are classified as moderate or mild (14), however infectivity may be a better measure of disease distribution.
+
+As of late April 2026, the NREVSS dashboard suggested Vermont had one of the highest RSV concentrations in the country this late into the season. Two possibilities stuck out as causes for this:
+
+1. Vermont's 25-26 season has exhibited abnormally high RSV concentrations.
+2. Vermont's 25-26 season has peaked later than other states this year.
+
+## Viral Distribution Profile
+
+The first aim of this study was to investigate the overall trend for each site and determine if RSV concentrations were statistically significantly higher for the 25-26 season compared to previous seasons. The CDC's respiratory illnesses data channel states RSV burden is no more severe this season compared to previous seasons nationwide (15).
+
+Initially, exploratory analysis corroborated this fact. Most earlier seasons exhibited higher peaks per site than the current season, suggesting this season is well within normalcy. Only sites 1967, 1975, and 2350 peaked in 2025-2026 (Figure 3), yet only site 1975 had enough data to observe a trend. These visual peaks were corroborated by peak analysis (Figure 4,5 ; Table 3). Seasonal decomposition for the three significant sites showed neither sites 1966 nor 1975 exhibited significant increases in the overall trend, suggesting RSV concentrations were within an expected range for this season.
+
+Site 1965's overall trend of RSV concentrations this year increased and reached a new maximum. The trend time portion of the GAM model for this site also suggests this season showed an increase in RSV concentrations, suggesting site 1965 in Chittenden county did show an abnormal increase in RSV wastewater concentrations this year.
+
+## Temporal Shifts
+
+The second aim of this study was to identify possible delayed onset in the current RSV season in Vermont. As of May 15, 2026, the CDC maintains that RSV activity began later than expected in most regions of the US (15).
+
+Initial exploratory analysis provided no immediate insights into any temporal shift, however peak analysis quickly visualized an offset. For every site except 1967 (due to the aforementioned limitation) and 1976, RSV concentrations started increasing later than previous seasons and peaked later than earlier seasons. Peaks occurred around fifty days later this year among sites 1965, 1966, 1975, and 2350 (Figure 5). Figure 6, which compares peaks across sites and seasons by days since the start of the season, reveals the seasonal trend was not significantly different.
+
+Peak days in the 25-26 season were significantly later than peaks in the 23-24 and 24-25 seasons, excluding site 1976. On average, peaks were around a month later this year (Table 2). Site 2350 exhibited its highest peak on May 5th this year, which shows the extent of this as no site had even peaked in April in the last few years.
+
+Showing the season was offset
+
+- GAM peaks in seasonal corroborate the peaks
+
+# Considerations
+- what else could lead to site 1965 showing increased concentrations this year?
+- what did vaccinations look like this year? were schedules extended? how did recommendations change?
+- this season is lasting longer, so season lengths could still be compared (Table 1)
+- why is site 1976 different 
 
 
 ## Sources
@@ -611,5 +692,11 @@ https://otexts.com/fpp3/components.html
 11. https://www.cdc.gov/wastewater/about/index.html
 
 12. https://pmc.ncbi.nlm.nih.gov/articles/PMC11103741/
+
+13. https://www.cdc.gov/cfa-qualitative-assessments/php/data-research/season-outlook25-26.html
+
+14. Belongia EA, King JP, Kieke BA, et al. Clinical Features, Severity, and Incidence of RSV Illness During 12 Consecutive Seasons in a Community Cohort of Adults ≥60 Years Old. Open Forum Infect Dis. 2018;5(12):ofy316. Published 2018 Nov 27. doi:10.1093/ofid/ofy316
+
+15. https://www.cdc.gov/respiratory-viruses/data/
 
 
