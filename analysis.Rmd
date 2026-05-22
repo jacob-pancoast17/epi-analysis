@@ -48,7 +48,11 @@ RSV is highly contagious, and often difficult for providers to distinguish from 
 - Flu (influenza)
 - COVID-19
 
-![Flu burden](Flu-Burden.jpg)
+``` {r flu_burden, fig.cap = "Figure 1. Estimated range of annual flu burden from 2010-2025 obtained from https://www.cdc.gov/flu-burden/php/about/index.html"}
+
+include_graphics("figures/flu-burden.png")
+
+```
 
 According to this chart, the hospitalization rate for RSV may be between 2 - 4.4 times lower than influenza, while the mortality rate may be between 1.05 - 5.2 times lower than influenza. Despite RSV being not too much different in prevalence from the flu, it often goes undiagnosed due to similar symptoms.
 
@@ -64,7 +68,11 @@ RSV-NET (RSV-Hospitalization Surveillance Network) is a CDC-led program that mon
 
 ## RSV in Vermont
 
-![NREVSS Dashboard as of the week ending April 25, 2026](rsv_quintiles.png)
+``` {r NREVSS_dash, fig.cap = "Figure 2. The CDC NREVSS Dashboard of the week ending April 25, 2026 obtained from https://www.cdc.gov/nrevss/php/dashboard/index.html"}
+
+include_graphics("figures/rsv_quintiles.png")
+
+```
 As of late April 2026, Vermont had one of the highest concentrations 
 
 
@@ -79,6 +87,12 @@ Population differences are small enough to accomodate this decision.
 The CDC collects data reported by state and local health departments through the National Wastewater Surveillance System (NWSS) supported by funding through the Epidemiology and Laboratory Capacity for the Prevention and Control of Emerging Infectious Diseases Cooperative Agreement (10).
 
 ![NWSS sites which report RSV concentrations across the United States as of May 14, 2026 (11)](nwss_sites.png)
+
+``` {r NWSS_sites, fig.cap = "Figure 3. United States NWSS Sites reporting RSV concentrations as of May 14, 2025 obtained from https://www.cdc.gov/wastewater/about/index.html?cove-tab=3"}
+
+include_graphics("figures/nwss_sites.png")
+
+```
 
 Sites are selected by local governments to increase wastewater surveillance and population coverage. Many health departments prioritize enrolling sites with a high social vulnerability index to better represent vulnerable populations who may be underrepresented in clinical tests for respiratory viruses. 89% of sites are located at a wastewater treatment plan(12).
 
@@ -265,7 +279,7 @@ peak_days <-
   ) |> 
   filter(season != 'off-season') |> 
   pivot_wider(
-    names_from = season,
+    names_from = site,
     values_from = c(peak_day)
   ) 
 
@@ -467,8 +481,11 @@ A total of *n = 4* disjoint respiratory virus seasons were observed among the si
 
 Sites 1965, 1966, and 1975 report high spikes in RSV concentration during mid-late season 2023-2024. Excluding sites 1976 and 2350, RSV concentrations seem to be highest overall in the 2023-2024 and 2025-2026 seasons.
 
+#### Season Info {.tabset}
 
-The mean season lengths of each seasons across sites were as follows:
+##### Season lengths
+
+Table 1
 
 ``` {r season_lengths}
 
@@ -479,7 +496,9 @@ szn_lengths |>
 
 The 2023-2024 season was the longest season on average of the last three years.
 
-The peak days for each season are as follows:
+##### Season peaks
+
+Table 2
 
 ``` {r peak_day}
 
@@ -490,7 +509,9 @@ peak_days |>
 
 In the 2022-2023, 2023-2024, 2024-2025 and 2025-2026 seasons the most common peak ranges were March, February, February, and late February.
 
-The peak year for each site are as follows:
+##### Peak years
+
+Table 3
 
 ``` {r peak_year}
 
@@ -653,7 +674,7 @@ The second aim of this study was to identify possible delayed onset in the curre
 
 Initial exploratory analysis provided no immediate insights into any temporal shift, however peak analysis quickly visualized an offset. For every site except 1967 (due to the aforementioned limitation) and 1976, RSV concentrations started increasing later than previous seasons and peaked later than earlier seasons. Peaks occurred around fifty days later this year among sites 1965, 1966, 1975, and 2350 (Figure 5). Figure 6, which compares peaks across sites and seasons by days since the start of the season, reveals the seasonal trend was not significantly different.
 
-Peak days in the 25-26 season were significantly later than peaks in the 23-24 and 24-25 seasons, excluding site 1976. On average, peaks were around a month later this year (Table 2). Site 2350 exhibited its highest peak on May 5th this year, which shows the extent of this as no site had even peaked in April in the last few years.
+Peak days in the 25-26 season were significantly later than peaks in the 23-24 and 24-25 seasons, excluding site 1976. On average, peaks were around a month later this year (Table 2). Site 2350 exhibited its highest peak on May 5th this year, which shows the extent of this as no site peaked in April or May in the last few years.
 
 Showing the season was offset
 
@@ -673,11 +694,7 @@ https://www.cdc.gov/rsv/about/index.html
 1. https://pmc.ncbi.nlm.nih.gov/articles/PMC11946814/
 2. https://pubmed.ncbi.nlm.nih.gov/38574192/
 
-https://www.cdc.gov/flu-burden/php/about/index.html
-
 https://www.cdc.gov/rsv/php/surveillance/rsv-net.html
-
-https://www.cdc.gov/nrevss/php/dashboard/index.html
 
 https://www.who.int/news-room/fact-sheets/detail/respiratory-syncytial-virus-(rsv)
 
