@@ -16,8 +16,8 @@ pacman::p_load(tidyverse,
                feasts,
                Kendall,
                mgcv,
-               knitr
-               )
+               knitr,
+               patchwork)
 ```
 # Introduction
 
@@ -181,6 +181,28 @@ exploratory <-
     color = "Site number",
     caption = "Source: CDC National Wastewater Surveillance System"
   )
+
+```
+
+``` {r graph_colors}
+
+data <- 
+  ggplot_build(exploratory)$data[[2]]
+
+
+colors <- 
+  unique(data$colour)
+
+names(colors) <- 
+  c(
+    1965,
+    1966,
+    1967,
+    1975,
+    1976,
+    2350
+  )
+
 ```
 
 #### Peak Comparison
@@ -405,6 +427,46 @@ decomp_peaks_1975 <-
 
 ```
 
+``` {r graph_seasonal_decomp, include=FALSE}
+
+# Graph seasonal decomposition for site 1965
+decomposed_1965 <- 
+  components(site_1965) |> 
+  autoplot(
+    color = colors["1965"]
+  ) +
+  labs(
+    subtitle = "Site 1965: Chittenden County, VT",
+    x = "Week"
+  ) +
+  theme_minimal()
+
+# Graph seasonal decomposition for site 1966
+decomposed_1966 <- 
+  components(site_1966) |> 
+  autoplot(
+    color = colors["1966"]
+  ) +
+  labs(
+    subtitle = "Site 1966: Chittenden County, VT",
+    x = "Week"
+  ) +
+  theme_minimal() 
+
+# Graph seasonal decomposition for site 1975
+decomposed_1975 <- 
+  components(site_1975) |> 
+  autoplot(
+    color = colors["1975"]
+  ) +
+  labs(
+    subtitle = "Site 1975: Washington County, VT",
+    x = "Week"
+  ) +
+  theme_minimal()
+
+```
+
 ``` {r ymd_to_md, include=FALSE}
 
 # Peak_as_month_date takes a decomp_peaks_(site number) and returns the mean peak date
@@ -457,7 +519,9 @@ A general additive model (GAM) was used to model the relationship between date a
 An initial overview of the data sought to visualize early patterns to note trend and seasonal observations, compare sites, and identify any initial limitations of further analysis.
 
 ``` {r visualize_exploratory}
+
 exploratory
+
 ```
 
 Exploratory visualizations revealed clear seasonal patterns around sites consistent with known information surrounding RSV epidemiology. Concentrations begin to increase in the Fall and peak typically in January or February before declining again in April to May. This pattern was consistent across all sites. Only sites 1965, 1966, and 1975 contained three full seasons worth of data, providing enough data for further statistical tests (seasonal decomposition and GAM).
@@ -538,36 +602,17 @@ at time period *t*
 
 ``` {r show_seasonal_decomposition}
 
-# Graph seasonal decomposition for site 1965
-components(site_1965) |> 
-  autoplot() +
-  labs(
+decomposed_1965 +
+  decomposed_1966 +
+  decomposed_1975 +
+  plot_annotation(
     title = "STL Decomposition of RSV Wastewater Concentration",
-    subtitle = "Site 1965: Chittenden County, VT",
     caption = "Source: CDC National Wastewater Surveillance System"
   ) +
-  theme_minimal()
+  plot_layout(
 
-# Graph seasonal decomposition for site 1966
-components(site_1966) |> 
-  autoplot() +
-  labs(
-    title = "STL Decomposition of RSV Wastewater Concentration",
-    subtitle = "Site 1966: Chittenden County, VT",
-    caption = "Source: CDC National Wastewater Surveillance System"
-  ) +
-  theme_minimal()
-
-# Graph seasonal decomposition for site 1975
-components(site_1975) |> 
-  autoplot() +
-  labs(
-    title = "STL Decomposition of RSV Wastewater Concentration",
-    subtitle = "Site 1975: Washington County, VT",
-    x = "Week",
-    caption = "Source: CDC National Wastewater Surveillance System"
-  ) +
-  theme_minimal()
+  )
+  
 ```
 
 For sites 1965, 1966, and 1975 over the last three years, seasonal peaks occur on averange on `r peak_as_month_date(decomp_peaks_1965)`, `r peak_as_month_date(decomp_peaks_1966)`, and `r peak_as_month_date(decomp_peaks_1975)` respectively.
