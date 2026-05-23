@@ -16,7 +16,8 @@ pacman::p_load(gratia,
                Kendall,
                mgcv,
                knitr,
-               patchwork)
+               patchwork,
+               cowplot)
 
 opts_chunk$set(echo = FALSE)
 
@@ -58,48 +59,55 @@ This is in progress.
 
 ## Respiratory Syncytial Virus (RSV)
 
-Respiratory syncytial virus (RSV) is a RNA virus belonging to the *Pneumoviridae* family of viruses. Similarly to other common respiratory diseases, RSV infection is most often accompanied by (CDC):
+Respiratory syncytial virus (RSV) is a RNA virus belonging to the *Pneumoviridae* family of viruses. RSV infection is most often accompanied by difficulty breathing, coughing, sneezing, congestion, and decreased appetite. Less commonly, RSV can lead to more severe illnesses including [bronchiolitis](https://www.mayoclinic.org/diseases-conditions/bronchiolitis/symptoms-causes/syc-20351565) and [Pneumonia](https://www.mayoclinic.org/diseases-conditions/pneumonia/symptoms-causes/syc-20354204). This type of progression of RSV is more commonly associated with high risk groups, including infants, young children, and older adults^1^.
 
-* Difficulty breathing
-* Coughing
-* Sneezing
-* Congestion
-* Decreased appetite
-
-as well as less common symptoms, which usually appear in infants, young children, and older adults:
-
-* [Bronchiolitis](https://www.mayoclinic.org/diseases-conditions/bronchiolitis/symptoms-causes/syc-20351565)
-* [Pneumonia](https://www.mayoclinic.org/diseases-conditions/pneumonia/symptoms-causes/syc-20354204)
-
-Like many other seasonal viruses, RSV starts in the fall in the United States, peaking in the winter (usually around January to February) before case numbers lower as spring approaches.
+RSV epidemiology in the United States indicate RSV trends increase in the fall (respiratory virus season) in the United States, peaking in the winter (December or January) before case numbers lower as spring approaches^1^. This year the CDC identified a temporal shift in the 25-26 season. RSV activity started later in most parts of the US, and also peaked later^2^.
 
 ## Why is RSV Significant?
 
-Worldwide, RSV is a leading cause of acute lower respiratory infections among both children and elderly. In the United States alone, it was estimated to cause between 60,000 and 160,000 hospitalizations as well as 6,000-10,000 deaths annually among adults aged 65 and over (NCBI 1).
+Clinically, RSV presents similarly to the other respiratory infections, including the common cold, influenza, and COVID-19. Due to these similarities, RSV is often misdiagnosed, especially in high risk populations^3^. Worldwide, RSV is a leading cause of acute lower respiratory infections among both children and elderly. In the United States alone, it was estimated to cause between 60,000 and 160,000 hospitalizations as well as 6,000-10,000 deaths annually among adults aged 65 and over in 2023^4^.
 
-RSV is highly contagious, and often difficult for providers to distinguish from other common respiratory viruses including:
+``` {r flu_burden, fig.align = "center", fig.caption = "Figure 1. Estimated ranges of annual flu and RSV burdens.\n Flu burdens are estimated using data from 2010-2025 obtained from https://www.cdc.gov/flu-burden/php/about/index.html.\n RSV burdens are estimated from a 2023 CDC MMWR report from https://doi.org/10.1016/j.ajt.2023.09.003"}
 
-- Common cold (rhinovirus)
-- Flu (influenza)
-- COVID-19
+flu_rsv_burdens <- 
+  (
+    ggdraw() +
+      draw_image("figures/flu-burden.png") +
+      draw_label(label = "Flu Burden", x = 0.5, y = 0.95)
+    ) +
+  
+  plot_spacer() +
+  
+  (
+    ggdraw() +
+     draw_image("figures/rsv-burden.png") +
+      draw_label(label = "RSV Burden", x = 0.5, y = 0.95)
+    ) +
+  
+  plot_annotation(
+    title = "Disease Burden for Flu and RSV",
+    theme = theme(
+      plot.title = element_text(hjust = 0.5)
+    )
+  ) +
+  
+  plot_layout(
+    widths = c(1, 0.1, 1)
+  )
 
-``` {r flu_burden, fig.align = "center", fig.cap = "Figure 1. Estimated range of annual flu burden from 2010-2025 obtained from https://www.cdc.gov/flu-burden/php/about/index.html"}
-
-include_graphics("figures/flu-burden.png")
+flu_rsv_burdens
 
 ```
 
-According to this chart, the hospitalization rate for RSV may be between 2 - 4.4 times lower than influenza, while the mortality rate may be between 1.05 - 5.2 times lower than influenza. Despite RSV being not too much different in prevalence from the flu, it often goes undiagnosed due to similar symptoms.
+The hospitalization rate for RSV may be between 2 - 4.4 times lower than influenza, while the mortality rate may be between 1.05 - 5.2 times lower than influenza (Figure 1).
 
 More consideration should be given to RSV, since it shares similar mortality rate to the flu yet has higher rates of pneumonia, hospitalization, and extended hospital stays (NCBI 2). Lowering the incidence of RSV would improve health outcomes for at-risk populations and reduce costs associated with prolonged hospital stays.
 
-## Measuring RSV
+## RSV Monitoring Systems
 
-Multiple limitations exist within the United State's RSV reporting systems in place.
+The RSV-Hospitalization Surveillance Network (RSV-NET) is a CDC-led program that monitors laboratory-confirmed RSV hospitalizations. Established in 2018, this program serves 14 states (found [here](https://www.cdc.gov/resp-net/dashboard/)) and over 170 counties. The National Respiratory and Eneteric Virus Surveillance System (NREVSS) measures weekly positive RSV tests since 1989 through voluntarily participating labs. RSV is frequently misdiagnosed and testing is underutilized, especially in vulnerable populations (socioeconomically disadvantaged, elderly, children). RSV-NET and NREVSS both suffer from this undercoverage bias in RSV data collection.
 
-Nationwide testing surrounding RSV remains minimal, complicating the process of data aggregation. There is not yet a central RSV-surveillance system in place nationwide, leading to large gaps of coverage in certain states. 
-
-RSV-NET (RSV-Hospitalization Surveillance Network) is a CDC-led program that monitors laboratory-confirmed RSV hospitalizations. Established in 2018, this program serves 14 states (found [here](https://www.cdc.gov/resp-net/dashboard/)) and over 170 counties. NREVSS (National Respiratory and Eneteric Virus Surveillance System) measures RSV since 1989 through labs who voluntarily report positive RSV tests weekly. While generally more comprehensive, the data obtained through NREVSS is still subject to undercoverage bias.
+Currently, there is no central nationwide surveillance system for RSV in place, leading to large gaps of coverage in certain states.
 
 ## RSV in Vermont
 
@@ -807,7 +815,7 @@ Site 1965's overall trend of RSV concentrations this year increased and reached 
 
 ## Temporal Shifts
 
-The second aim of this study was to identify possible delayed onset in the current RSV season in Vermont. As of May 15, 2026, the CDC maintains that RSV activity began later than expected in most regions of the US (15).
+The second aim of this study was to identify possible delayed onset in the current RSV season in Vermont. As of May 15, 2026, the CDC maintains that RSV activity began later than expected in most regions of the US^2^.
 
 Initial exploratory analysis provided no immediate insights into any temporal shift, however peak analysis quickly visualized an offset. For every site except 1967 (due to the aforementioned limitation) and 1976, RSV concentrations started increasing later than previous seasons and peaked later than earlier seasons. Peaks occurred around fifty days later this year among sites 1965, 1966, 1975, and 2350 (Figure 5). Figure 6, which compares peaks across sites and seasons by days since the start of the season, reveals the seasonal trend was not significantly different.
 
@@ -842,10 +850,17 @@ gam_graphed_1975
 
 # Sources
 
-https://www.cdc.gov/rsv/about/index.html
+1. Centers for Disease Control and Prevention. About RSV. https://www.cdc.gov/rsv/about/index.html. Updated December 30, 2025. Accessed May 14, 2026.
 
-1. https://pmc.ncbi.nlm.nih.gov/articles/PMC11946814/
+2. Centers for Disease Control and Prevention. About RSV. https://www.cdc.gov/respiratory-viruses/data/. Updated May 20, 2026. Accessed May 21, 2026.
+
+3. Davido B, Loubet P. The silent surge: The under-recognised burden of respiratory syncytial virus, human metapneumovirus, and Parainfluenza viruses in adults. International Journal of Infectious Diseases. 2025;159:108006. doi:10.1016/j.ijid.2025.108006 
+
+4. Melgar M, Britton A, Roper LE, et al. Use of Respiratory Syncytial Virus Vaccines in Older Adults: Recommendations of the Advisory Committee on Immunization Practices — United States, 2023. MMWR Morb Mortal Wkly Rep 2023;72:793–801. DOI: http://dx.doi.org/10.15585/mmwr.mm7229a4.
+
+
 2. https://pubmed.ncbi.nlm.nih.gov/38574192/
+
 
 https://www.cdc.gov/rsv/php/surveillance/rsv-net.html
 
@@ -867,6 +882,6 @@ https://otexts.com/fpp3/components.html
 
 14. Belongia EA, King JP, Kieke BA, et al. Clinical Features, Severity, and Incidence of RSV Illness During 12 Consecutive Seasons in a Community Cohort of Adults ≥60 Years Old. Open Forum Infect Dis. 2018;5(12):ofy316. Published 2018 Nov 27. doi:10.1093/ofid/ofy316
 
-15. https://www.cdc.gov/respiratory-viruses/data/
+15. 
 
 
