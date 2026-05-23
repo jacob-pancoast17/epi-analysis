@@ -6,10 +6,9 @@ output: html_document
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = FALSE)
 
-pacman::p_load(tidyverse, 
-               ggplot2, 
+pacman::p_load(gratia,
+               tidyverse, 
                tsibble,
                slider,
                fable,
@@ -18,7 +17,11 @@ pacman::p_load(tidyverse,
                mgcv,
                knitr,
                patchwork)
+
+opts_chunk$set(echo = FALSE)
+
 ```
+
 # Introduction
 
 ## What is Respiratory Syncytial Virus (RSV)?
@@ -48,7 +51,7 @@ RSV is highly contagious, and often difficult for providers to distinguish from 
 - Flu (influenza)
 - COVID-19
 
-``` {r flu_burden, fig.cap = "Figure 1. Estimated range of annual flu burden from 2010-2025 obtained from https://www.cdc.gov/flu-burden/php/about/index.html"}
+``` {r flu_burden, fig.align = "center", fig.cap = "Figure 1. Estimated range of annual flu burden from 2010-2025 obtained from https://www.cdc.gov/flu-burden/php/about/index.html"}
 
 include_graphics("figures/flu-burden.png")
 
@@ -68,7 +71,7 @@ RSV-NET (RSV-Hospitalization Surveillance Network) is a CDC-led program that mon
 
 ## RSV in Vermont
 
-``` {r NREVSS_dash, fig.cap = "Figure 2. The CDC NREVSS Dashboard of the week ending April 25, 2026 obtained from https://www.cdc.gov/nrevss/php/dashboard/index.html"}
+``` {r NREVSS_dash, fig.align = "center", fig.cap = "Figure 2. The CDC NREVSS Dashboard of the week ending April 25, 2026 obtained from https://www.cdc.gov/nrevss/php/dashboard/index.html"}
 
 include_graphics("figures/rsv_quintiles.png")
 
@@ -88,7 +91,7 @@ The CDC collects data reported by state and local health departments through the
 
 ![NWSS sites which report RSV concentrations across the United States as of May 14, 2026 (11)](nwss_sites.png)
 
-``` {r NWSS_sites, fig.cap = "Figure 3. United States NWSS Sites reporting RSV concentrations as of May 14, 2025 obtained from https://www.cdc.gov/wastewater/about/index.html?cove-tab=3"}
+``` {r NWSS_sites, fig.align = "center", fig.cap = "Figure 3. United States NWSS Sites reporting RSV concentrations as of May 14, 2025 obtained from https://www.cdc.gov/wastewater/about/index.html?cove-tab=3"}
 
 include_graphics("figures/nwss_sites.png")
 
@@ -436,8 +439,10 @@ decomposed_1965 <-
     color = colors["1965"]
   ) +
   labs(
+    title = "STL Decomposition of RSV Wastewater Concentration",
     subtitle = "Site 1965: Chittenden County, VT",
-    x = "Week"
+    x = "Week",
+    caption = "Source: CDC National Wastewater Surveillance System"
   ) +
   theme_minimal()
 
@@ -512,13 +517,123 @@ A general additive model (GAM) was used to model the relationship between date a
 
 - chose bs = cc for cyclic smoothing spline
 
+```{r to_gam_format, include=FALSE}
+
+to_gam <- 
+  function(site_num) {
+    vt_rsv |> 
+    filter(site == site_num) |> 
+    mutate(
+      first_date = min(date),
+      days_elapsed = as.numeric(date - first_date),
+      day_of_year = yday(date),
+      weekly_mean_log = log1p(mean_7day)
+    )
+  }
+
+```
+
+
+```{r gam_analysis, include=FALSE}
+
+site_1965_for_gam <- to_gam('1965')
+site_1966_for_gam <- to_gam('1966')
+site_1975_for_gam <- to_gam('1975')
+
+# Fit gam for site 1965
+gam_1965 <- gam(
+  weekly_mean_log ~ s(days_elapsed) + s(day_of_year, bs = 'cc'),
+  data = site_1965_for_gam,
+  method = 'REML'
+)
+
+# Fit gam for site 1966
+gam_1966 <- gam(
+  weekly_mean_log ~ s(days_elapsed) + s(day_of_year, bs = 'cc'),
+  data = site_1966_for_gam,
+  method = 'REML'
+)
+
+# Fit gam for site 1975
+gam_1975 <- gam(
+  weekly_mean_log ~ s(days_elapsed) + s(day_of_year, bs = 'cc'),
+  data = site_1975_for_gam,
+  method = 'REML'
+)
+
+```
+
+``` {r gam_graphs, include=FALSE}
+
+gam_graphed_1965 <- 
+  wrap_plots(
+  gratia::draw(gam_1965, select = 1, smooth_col = colors["1965"], residuals = TRUE) + 
+    labs(
+      title = "'Days Elapsed' Component",
+      x = paste0("Days since ", format(site_1965_for_gam$date[1], "%B %d, %Y")),
+      y = "Partial Effect (log scale)"
+    )
+  ) +
+  wrap_plots(
+    gratia::draw(gam_1965, select = 2, smooth_col = colors["1965"], residuals = TRUE) + 
+      labs(
+        title = "'Day of Year' Component",
+        x = "Day of Year",
+        y = NULL)
+    ) +
+  plot_annotation(
+    title = "GAM Smoothed Components for Site 1965"
+  )
+
+gam_graphed_1966 <- 
+  wrap_plots(
+  gratia::draw(gam_1966, select = 1, smooth_col = colors["1966"], residuals = TRUE) + 
+    labs(
+      title = "'Days Elapsed' Component",
+      x = paste0("Days since ", format(site_1966_for_gam$date[1], "%B %d, %Y")),
+      y = "Partial Effect (log scale)"
+    )
+  ) +
+  wrap_plots(
+    gratia::draw(gam_1966, select = 2, smooth_col = colors["1966"], residuals = TRUE) + 
+      labs(
+        title = "'Day of Year' Component",
+        x = "Day of Year",
+        y = NULL)
+    ) +
+  plot_annotation(
+    title = "GAM Smoothed Components for Site 1966"
+  )
+
+gam_graphed_1975 <- 
+  wrap_plots(
+  gratia::draw(gam_1975, select = 1, smooth_col = colors["1975"], residuals = TRUE) + 
+    labs(
+      title = "'Days Elapsed' Component",
+      x = paste0("Days since ", format(site_1975_for_gam$date[1], "%B %d, %Y")),
+      y = "Partial Effect (log scale)"
+    )
+  ) +
+  wrap_plots(
+    gratia::draw(gam_1975, select = 2, smooth_col = colors["1975"], residuals = TRUE) + 
+      labs(
+        title = "'Day of Year' Component",
+        x = "Day of Year",
+        y = NULL)
+    ) +
+  plot_annotation(
+    title = "GAM Smoothed Components for Site 1975"
+  )
+
+```
+
 # Results
 
 ### Exploratory Analysis
 
 An initial overview of the data sought to visualize early patterns to note trend and seasonal observations, compare sites, and identify any initial limitations of further analysis.
 
-``` {r visualize_exploratory}
+``` {r visualize_exploratory, fig.align = "center"}
 
 exploratory
 
@@ -528,7 +643,7 @@ Exploratory visualizations revealed clear seasonal patterns around sites consist
 
 ### Peak analysis 
 
-``` {r visualize_seasonal_offset}
+``` {r visualize_seasonal_offset, fig.align = "center"}
 
 seasonal_offset
 
@@ -536,7 +651,7 @@ seasonal_offset
 
 Comparison of seasonal peak offsets reveal generally seasons occurring earlier in the study period exhibit earlier onset of RSV concentration increases. The 2023-2024 season rises and peaks early in sites 1965, 1966, and 1975 before the 2024-2025 and 2025-2026 seasons rise. Peaks in the latter seasons appear to be between 30-50 (**QUANTIFY THIS**) days later than peaks in the 2023-2024 season. Data for site 2350 also supports this trend, excluding an early spike in concentration during the 2025-2026 season. Site 1976 maintains fairly similar peaks between the 2024-2025 season and the 2025-2026 season.
 
-``` {r visualize_seasonal_peaks}
+``` {r visualize_seasonal_peaks, fig.align = "center"}
 
 seasonal_peaks
 
@@ -600,18 +715,9 @@ $R_t$ = The **remainder** component explains the difference between $y_t$ and $S
 
 at time period *t*
 
-``` {r show_seasonal_decomposition}
+``` {r show_seasonal_decomposition, fig.align = "center"}
 
-decomposed_1965 +
-  decomposed_1966 +
-  decomposed_1975 +
-  plot_annotation(
-    title = "STL Decomposition of RSV Wastewater Concentration",
-    caption = "Source: CDC National Wastewater Surveillance System"
-  ) +
-  plot_layout(
-
-  )
+decomposed_1965
   
 ```
 
@@ -621,58 +727,13 @@ Site 1965 shows a dip in the overall trend of the data during summer 2024. From 
 
 Observing seasonal decomposition, we can see after separating the data for site 1965 into the trend, seasonal, and remainder components that the overall trend is increasing for the 2026 season. For site 1966, since early 2024 the overall trend has remained about constant. For site 1975, the trend dramatically decreases during the summer months and is still approaching its peak for the 2025-2026 season.
 
-```{r to_gam_format}
-
-to_gam <- 
-  function(site_num) {
-    vt_rsv |> 
-    filter(site == site_num) |> 
-    mutate(
-      first_date = min(date),
-      days_elapsed = as.numeric(date - first_date),
-      day_of_year = yday(date),
-      weekly_mean_log = log1p(mean_7day)
-    )
-  }
-
-```
-
-
-```{r gam}
-
-site_1965_for_gam <- to_gam('1965')
-site_1965_for_gam
-site_1966_for_gam <- to_gam('1966')
-site_1975_for_gam <- to_gam('1975')
-
-# Fit gam for site 1965
-gam_1965 <- gam(
-  weekly_mean_log ~ s(days_elapsed) + s(day_of_year, bs = 'cc'),
-  data = site_1965_for_gam,
-  method = 'REML'
-)
-
-# Fit gam for site 1966
-gam_1966 <- gam(
-  weekly_mean_log ~ s(days_elapsed) + s(day_of_year, bs = 'cc'),
-  data = site_1966_for_gam,
-  method = 'REML'
-)
-
-# Fit gam for site 1975
-gam_1975 <- gam(
-  weekly_mean_log ~ s(days_elapsed) + s(day_of_year, bs = 'cc'),
-  data = site_1975_for_gam,
-  method = 'REML'
-)
+``` {r show_gam, fig.align = "center"}
 
 summary(gam_1965)
 summary(gam_1966)
 summary(gam_1975)
 
-plot(gam_1965, pages = 1, residuals = TRUE)
-plot(gam_1966, pages = 1, residuals = TRUE)
-plot(gam_1975, pages = 1, residuals = TRUE)
+gam_graphed_1975
 
 ```
 The general additive model sums a smoothing spline of days elapsed since March 3, 2023 to a smoothing cyclic cubic spline of the day of the year. For all three sites, data was consistent.
@@ -693,6 +754,8 @@ A known limitation of the data according to collection methods are that differen
 some sites don't report all the data
 no hospitalizations 
 data only covers 4 years maximum which really isn't enough
+why was the days elapsed since day chosen
+why was june 1st chosen as since off szn
 
 # Discussion
 
@@ -730,6 +793,22 @@ Showing the season was offset
 - what did vaccinations look like this year? were schedules extended? how did recommendations change?
 - this season is lasting longer, so season lengths could still be compared (Table 1)
 - why is site 1976 different 
+
+# Supplemental Figures
+
+``` {r supplemental_figures}
+
+decomposed_1966 +
+  decomposed_1975 +
+  plot_annotation(
+    title = "STL Decomposition of RSV Wastewater Concentration",
+    caption = "Source: CDC National Wastewater Surveillance System"
+  )
+
+gam_graphed_1966
+gam_graphed_1975
+
+```
 
 
 ## Sources
