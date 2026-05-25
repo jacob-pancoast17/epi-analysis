@@ -1,5 +1,5 @@
 ---
-title: "Temporal Trends in RSV Wastewater Concentrations Across Vermont Monitoring Sites, 2023-2026"
+title: "Temporal Trends in RSV Wastewater Concentrations Across Vermont NWSS Monitoring Sites, 2023-2026"
 date: "May 23, 2026"
 author: "Jacob Pancoast"
 output: html_document
@@ -59,21 +59,24 @@ This is in progress.
 
 ## Respiratory Syncytial Virus (RSV)
 
-Respiratory syncytial virus (RSV) is a RNA virus belonging to the *Pneumoviridae* family of viruses. RSV infection is most often accompanied by difficulty breathing, coughing, sneezing, congestion, and decreased appetite. Less commonly, RSV can lead to more severe illnesses including [bronchiolitis](https://www.mayoclinic.org/diseases-conditions/bronchiolitis/symptoms-causes/syc-20351565) and [Pneumonia](https://www.mayoclinic.org/diseases-conditions/pneumonia/symptoms-causes/syc-20354204). This type of progression of RSV is more commonly associated with high risk groups, including infants, young children, and older adults^1^.
+Respiratory syncytial virus (RSV) is a RNA virus belonging to the *Pneumoviridae* family of viruses. RSV infection is most often accompanied by difficulty breathing, coughing, sneezing, congestion, and decreased appetite. Less commonly, RSV can lead to more severe illnesses including [bronchiolitis](https://www.mayoclinic.org/diseases-conditions/bronchiolitis/symptoms-causes/syc-20351565) and [pneumonia](https://www.mayoclinic.org/diseases-conditions/pneumonia/symptoms-causes/syc-20354204). This type of progression of RSV is more commonly associated with high risk groups, including infants, young children, and older adults^1^.
 
-RSV epidemiology in the United States indicate RSV trends increase in the fall (respiratory virus season) in the United States, peaking in the winter (December or January) before case numbers lower as spring approaches^1^. This year the CDC identified a temporal shift in the 25-26 season. RSV activity started later in most parts of the US, and also peaked later^2^.
+RSV epidemiology in the United States indicate RSV acivity increase in the fall (respiratory virus season) in the United States, peaking in the winter (December or January) before case numbers lower as spring approaches^1^. In the 2025-2026 season, the CDC identified RSV activity started later in most parts of the US, and also peaked later^2^.
 
 ## Why is RSV Significant?
 
 Clinically, RSV presents similarly to the other respiratory infections, including the common cold, influenza, and COVID-19. Due to these similarities, RSV is often misdiagnosed, especially in high risk populations^3^. Worldwide, RSV is a leading cause of acute lower respiratory infections among both children and elderly. In the United States alone, it was estimated to cause between 60,000 and 160,000 hospitalizations as well as 6,000-10,000 deaths annually among adults aged 65 and over in 2023^4^.
 
-``` {r flu_burden, fig.align = "center", fig.caption = "Figure 1. Estimated ranges of annual flu and RSV burdens.\n Flu burdens are estimated using data from 2010-2025 obtained from https://www.cdc.gov/flu-burden/php/about/index.html.\n RSV burdens are estimated from a 2023 CDC MMWR report from https://doi.org/10.1016/j.ajt.2023.09.003"}
+``` {r flu_burden, fig.align = "center", fig.caption = "Figure 1. Estimated ranges of annual flu and RSV burdens. Figure 1A was obtained from the CDC and shows flu burden from 2010-2025. Figure 1B was created using data from a CDC MMWR report on RSV from 2023 estimating the annual burden."}
 
 flu_rsv_burdens <- 
+  plot_spacer() +
+  
   (
     ggdraw() +
       draw_image("figures/flu-burden.png") +
-      draw_label(label = "Flu Burden", x = 0.5, y = 0.95)
+      draw_label(label = "Flu Burden", x = 0.5, y = 0.9) +
+      draw_label(label = "Figure 1A. Estimated ranges of annual\nflu burden from 2010-2025.\nSource: CDC Estimated Flu Burden⁵", x = 0.5, y = 0.1, size = 10)
     ) +
   
   plot_spacer() +
@@ -81,65 +84,64 @@ flu_rsv_burdens <-
   (
     ggdraw() +
      draw_image("figures/rsv-burden.png") +
-      draw_label(label = "RSV Burden", x = 0.5, y = 0.95)
+      draw_label(label = "RSV Burden", x = 0.5, y = 0.9) +
+      draw_label("Figure 1B. Created using estimated ranges of annual\n RSV burden in 2023.\nSource: CDC MMWR on Use of RSV Vaccines; July, 2023⁴", x= 0.5, y = 0.1, size = 10)
     ) +
+  
+  plot_spacer() +
   
   plot_annotation(
     title = "Disease Burden for Flu and RSV",
     theme = theme(
-      plot.title = element_text(hjust = 0.5)
+      plot.title = element_text(hjust = 0.5, vjust = -2, size = (16 * 1.3))
     )
   ) +
   
   plot_layout(
-    widths = c(1, 0.1, 1)
+    widths = c(0.2, 1, 0.3, 1, 0.2)
   )
 
 flu_rsv_burdens
 
 ```
 
-The hospitalization rate for RSV may be between 2 - 4.4 times lower than influenza, while the mortality rate may be between 1.05 - 5.2 times lower than influenza (Figure 1).
-
-More consideration should be given to RSV, since it shares similar mortality rate to the flu yet has higher rates of pneumonia, hospitalization, and extended hospital stays (NCBI 2). Lowering the incidence of RSV would improve health outcomes for at-risk populations and reduce costs associated with prolonged hospital stays.
+The hospitalization rate for RSV may be between 2 - 4.4 times lower than influenza, while the mortality rate may be between 1.05 - 5.2 times lower than influenza (Figure 1). RSV also exhibits higher rates of pneumonia, hospitalization, and extended hospital stays compared to the flu^6^. Lowering the incidence of RSV would likely improve health outcomes for at-risk populations and reduce costs associated with prolonged hospital stays.
 
 ## RSV Monitoring Systems
 
-The RSV-Hospitalization Surveillance Network (RSV-NET) is a CDC-led program that monitors laboratory-confirmed RSV hospitalizations. Established in 2018, this program serves 14 states (found [here](https://www.cdc.gov/resp-net/dashboard/)) and over 170 counties. The National Respiratory and Eneteric Virus Surveillance System (NREVSS) measures weekly positive RSV tests since 1989 through voluntarily participating labs. RSV is frequently misdiagnosed and testing is underutilized, especially in vulnerable populations (socioeconomically disadvantaged, elderly, children). RSV-NET and NREVSS both suffer from this undercoverage bias in RSV data collection.
+The RSV-Hospitalization Surveillance Network (RSV-NET) is a CDC-led program that monitors laboratory-confirmed RSV hospitalizations to estimate disease burden and identify trends in virus circulation^7^. Established in 2018, this program serves 14 states (found [here](https://www.cdc.gov/resp-net/dashboard/)) and over 170 counties. The National Respiratory and Eneteric Virus Surveillance System (NREVSS) measures weekly positive RSV tests since 1989 through voluntarily participating labs. RSV is frequently misdiagnosed and testing is underutilized, especially in vulnerable populations (socioeconomically disadvantaged, elderly, children). RSV-NET and NREVSS both suffer from this undercoverage bias in RSV data collection.
 
 Currently, there is no central nationwide surveillance system for RSV in place, leading to large gaps of coverage in certain states.
 
-## RSV in Vermont
-
-``` {r NREVSS_dash, fig.align = "center", fig.cap = "Figure 2. The CDC NREVSS Dashboard of the week ending April 25, 2026 obtained from https://www.cdc.gov/nrevss/php/dashboard/index.html"}
-
-include_graphics("figures/rsv_quintiles.png")
-
-```
-As of late April 2026, Vermont had one of the highest concentrations 
-
-
-Had to use pcr_target_avg_conc rather than pcr_target_flowpop_lin because too much data was missing
-
-Population differences are small enough to accomodate this decision.
-
-# Methods
-
 ## Wastewater Surveillance
 
-The CDC collects data reported by state and local health departments through the National Wastewater Surveillance System (NWSS) supported by funding through the Epidemiology and Laboratory Capacity for the Prevention and Control of Emerging Infectious Diseases Cooperative Agreement (10).
+The CDC collects data reported by state and local health departments through the National Wastewater Surveillance System (NWSS) supported by funding through the Epidemiology and Laboratory Capacity for the Prevention and Control of Emerging Infectious Diseases Cooperative Agreement^8^.
 
-``` {r NWSS_sites, fig.align = "center", fig.cap = "Figure 3. United States NWSS Sites reporting RSV concentrations as of May 14, 2025 obtained from https://www.cdc.gov/wastewater/about/index.html?cove-tab=3"}
+``` {r NWSS_sites, fig.align = "center", fig.cap = "Figure 2. United States NWSS Sites reporting RSV concentrations as of May 14, 2026. Source: CDC Wastewater Monitoring Program^9^", out.width = "600px"}
 
 include_graphics("figures/nwss_sites.png")
 
 ```
 
-Sites are selected by local governments to increase wastewater surveillance and population coverage. Many health departments prioritize enrolling sites with a high social vulnerability index to better represent vulnerable populations who may be underrepresented in clinical tests for respiratory viruses. 89% of sites are located at a wastewater treatment plan(12).
+Sites across the country (Figure 2) are selected by local governments based on site effectiveness and population coverage. Many health departments prioritize enrolling sites with a high social vulnerability index to better represent vulnerable populations who may be underrepresented in clinical tests for respiratory viruses. 89% of sites are located at a wastewater treatment plant^8^.
 
-Wastewater collection differs between sites. Some sites may sample untreated wastewater (sewage and stormwater) or primary sludge (suspended solids from wastewater). Sampling methods also differ, including grab samples (from a point in time) or composite samples (aggregated grab samples). Sampling frequency also differs between sites (12). For each sample, various metrics are recorded including flow rate, virus type, viral quantification, and contamination measurements. Each site is also associated with a region and population served (11, 12). Viral quantification is measured using repeated PCR tests. All data is then submitted to the CDC.
+Wastewater collection differs between sites. Some sites may sample untreated wastewater (sewage and stormwater) or primary sludge (suspended solids from wastewater). Sampling methods also differ, including grab samples (from a point in time) or composite samples (aggregated grab samples). Sampling frequency also differs between sites^9^. For each sample, various metrics are recorded including flow rate, virus type, viral quantification, and contamination measurements. Each site is also associated with a region and population served^8, 9^. Viral quantification is measured using repeated PCR tests, and all data is submitted to the CDC.
 
-## Analytic Methods
+## RSV in Vermont
+
+``` {r NREVSS_dash, fig.align = "center", fig.cap = "Figure 3. Percentage of positive RSV tests by state as of the week ending April 25, 2026. Source: CDC NREVSS Dashboard^10^", out.width = "800px"}
+
+include_graphics("figures/rsv_quintiles.png")
+
+```
+
+As of late April 2026, Vermont had one of the highest proportions of positive RSV tests in the country (Figure 3). This report investigates temporal trends across Vermont's six NWSS monitoring sites from 2023-2026 to assess the burden of the 25-26 RSV season, aiming to evaluate how well the CDC's assessment of the 25-26 season^2^ generalizes to Vermont and discuss Vermont-specific response to RSV.
+
+# Methods
+
+Had to use pcr_target_avg_conc rather than pcr_target_flowpop_lin because too much data was missing
+
+Population differences are small enough to accomodate this decision.
 
 Data cleaning, analyses, and visualizations were conducted using R (version 4.5.2; R Foundation). Prior to in-depth analysis, data cleaning and exploratory visualization was performed. During this step a 7-day rolling average concentration was calculated for each data point to reduce noise and artifacts.
 
@@ -831,6 +833,10 @@ Showing the season was offset
 - this season is lasting longer, so season lengths could still be compared (Table 1)
 - why is site 1976 different 
 
+As of late April 2026, Vermont had one of the highest proportions of positive RSV tests in the country (Figure 2). This report investigates temporal trends across Vermont's six NWSS monitoring sites from 2023-2026 to assess the burden of the 25-26 RSV season, aiming to evaluate how well the CDC's assessment of the 25-26 season^2^ generalizes to Vermont and discuss Vermont-specific response to RSV.
+
+did you do this ^^ ?
+
 # Supplemental Figures
 
 ``` {r supplemental_figures}
@@ -850,33 +856,42 @@ gam_graphed_1975
 
 # Sources
 
-1. Centers for Disease Control and Prevention. About RSV. https://www.cdc.gov/rsv/about/index.html. Updated December 30, 2025. Accessed May 14, 2026.
+1. Centers for Disease Control and Prevention. Respiratory Syncytial Virus. https://www.cdc.gov/rsv/about/index.html. Updated December 30, 2025. Accessed May 14, 2026.
 
-2. Centers for Disease Control and Prevention. About RSV. https://www.cdc.gov/respiratory-viruses/data/. Updated May 20, 2026. Accessed May 21, 2026.
+2. Centers for Disease Control and Prevention. Respiratory Illnesses. https://www.cdc.gov/respiratory-viruses/data/. Updated May 20, 2026. Accessed May 21, 2026.
 
-3. Davido B, Loubet P. The silent surge: The under-recognised burden of respiratory syncytial virus, human metapneumovirus, and Parainfluenza viruses in adults. International Journal of Infectious Diseases. 2025;159:108006. doi:10.1016/j.ijid.2025.108006 
+3. Davido B, Loubet P. The silent surge: The under-recognised burden of respiratory syncytial virus, human metapneumovirus, and Parainfluenza viruses in adults. International Journal of Infectious Diseases. 2025;159:108006. DOI: http://doi.org/10.1016/j.ijid.2025.108006.
 
 4. Melgar M, Britton A, Roper LE, et al. Use of Respiratory Syncytial Virus Vaccines in Older Adults: Recommendations of the Advisory Committee on Immunization Practices — United States, 2023. MMWR Morb Mortal Wkly Rep 2023;72:793–801. DOI: http://dx.doi.org/10.15585/mmwr.mm7229a4.
 
+5. Centers for Disease Control and Prevention. Flu Burden. https://www.cdc.gov/flu-burden/php/about/index.html. Updated February 25, 2026. Accessed May 13, 2026.
 
-2. https://pubmed.ncbi.nlm.nih.gov/38574192/
+6. Recto CG, Fourati S, Khellaf M, et al. Respiratory Syncytial Virus vs Influenza Virus Infection: Mortality and Morbidity Comparison Over 7 Epidemic Seasons in an Elderly Population. J Infect Dis. 2024;230(5):1130-1138. DOI: http://dx.doi.org/10.1093/infdis/jiae171
+
+7. https://www.cdc.gov/rsv/php/surveillance/rsv-net.html
+
+8. Adams C, Bias M, Welsh RM, et al. The National Wastewater Surveillance System (NWSS): From inception to widespread coverage, 2020-2022, United States. Sci Total Environ. 2024;924:171566. DOI: http://doi.org/10.1016/j.scitotenv.2024.171566.
+
+9. Centers for Disease Control and Prevention. CDC's Wastewater Monitoring Program. https://www.cdc.gov/wastewater/about/index.html?cove-tab=3. Updated May 13, 2026. Accessed May 14, 2026.
+
+10. Centers for Disease Control and Prevention. The National Respiraory and Enteric Virus Surveillance System (NREVSS). https://www.cdc.gov/nrevss/php/dashboard/index.html. Updated June 18, 2025. Accessed May 14, 2026.
+
+11. Centers for Disease Control and Prevention. CDC Wastewater Data for RSV. https://data.cdc.gov/Public-Health-Surveillance/CDC-Wastewater-Data-for-RSV/45cq-cw4i/about_data. Updated May 18, 2026. Accessed May 19, 2026.
 
 
-https://www.cdc.gov/rsv/php/surveillance/rsv-net.html
+
+
 
 https://www.who.int/news-room/fact-sheets/detail/respiratory-syncytial-virus-(rsv)
 
-https://www.mayoclinic.org/diseases-conditions/bronchiolitis/symptoms-causes/syc-20351565
-
-https://www.mayoclinic.org/diseases-conditions/pneumonia/symptoms-causes/syc-20354204
 
 https://otexts.com/fpp3/components.html
 
-10. https://data.cdc.gov/Public-Health-Surveillance/CDC-Wastewater-Data-for-RSV/45cq-cw4i/about_data
+10. 
 
 11. https://www.cdc.gov/wastewater/about/index.html
 
-12. https://pmc.ncbi.nlm.nih.gov/articles/PMC11103741/
+12. 
 
 13. https://www.cdc.gov/cfa-qualitative-assessments/php/data-research/season-outlook25-26.html
 
