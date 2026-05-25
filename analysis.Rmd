@@ -16,6 +16,7 @@ pacman::p_load(gratia,
                Kendall,
                mgcv,
                knitr,
+               kableExtra,
                patchwork,
                cowplot)
 
@@ -139,17 +140,21 @@ As of late April 2026, Vermont had one of the highest proportions of positive RS
 
 # Methods
 
+CDC wastewater data for RSV was obtained from Data.CDC.gov. Each row of the data represents a wastewater sample for RSV from participating NWSS sewershed sites, including dates of collection^11^. Before analysis, the data was cleaned and visualized (Figure 4). The "pcr_target_avg_conc" column was chosen for analysis of RSV concentrations rather than "pcr_target_flowpop_lin" since the flow-population-normalized column had large amounts of missing data. Population differences between sites were small enough to accommodate this decision (Table S1).
+
+During this step a 7-day rolling average concentration was calculated for each data point to reduce noise and artifacts. All data cleaning, analyses, and visualizations were conducted using R (version 4.5.2; R Foundation)
+
 Had to use pcr_target_avg_conc rather than pcr_target_flowpop_lin because too much data was missing
 
 Population differences are small enough to accomodate this decision.
 
-Data cleaning, analyses, and visualizations were conducted using R (version 4.5.2; R Foundation). Prior to in-depth analysis, data cleaning and exploratory visualization was performed. During this step a 7-day rolling average concentration was calculated for each data point to reduce noise and artifacts.
+
 
 ``` {r clean_data, include=FALSE}
 vt_rsv <- 
   read.csv("CDC_RSV_Wastewater_Data.csv") |>
   
-  select(site, counties_served, sample_collect_date, pcr_target, pcr_target_avg_conc, population_served) |>
+  select(site, counties_served, sample_collect_date, pcr_target, pcr_target_avg_conc, pcr_target_avg_conc_lin, population_served) |>
   
   filter(pcr_target == 'rsv',
          site != '1962') |> 
@@ -162,7 +167,7 @@ vt_rsv <-
          rsv_conc = pcr_target_avg_conc) |> 
   
   mutate(date = ymd(date), # date
-         rsv_conc = as.numeric(gsub(",", "", rsv_conc)), # convert to a numeric column
+         rsv_conc = as.numeric(gsub(",", "", rsv_conc)), # convert to a numeric column and remove commas
          county = as.factor(county), # convert to a factor
          site = as.factor(site), # convert to a factor
          facet_label = paste0("Site ", site, ": ", county, " county")) # create a title column
@@ -702,40 +707,37 @@ Sites 1965, 1966, and 1975 report high spikes in RSV concentration during mid-la
 
 ### Season Info {.tabset}
 
-#### Season lengths
-
-Table 1
+#### Season lengths (Table 1)
 
 ``` {r season_lengths}
 
 szn_lengths |> 
-  kable()
+  kable(caption = "Table 1. Season lengths by site, including the averaged length.") |> 
+  kable_styling(position = "center")
 
 ```
 
 The 2023-2024 season was the longest season on average of the last three years.
 
-#### Season peaks
-
-Table 2
+#### Season peaks (Table 2)
 
 ``` {r peak_day}
 
 peak_days |> 
-  kable()
+  kable(caption = "Figure 2. Season peak days by site, including the average peak by season and site.") |> 
+  kable_styling(position = "center")
 
 ```
 
 In the 2022-2023, 2023-2024, 2024-2025 and 2025-2026 seasons the most common peak ranges were March, February, February, and late February.
 
-#### Peak years
-
-Table 3
+#### Peak years (Table 3)
 
 ``` {r peak_year}
 
 peak_year |> 
-  kable()
+  kable(caption = "Figure 3. Peak year for each site.") |> 
+  kable_styling(position = "center")
 
 ```
 
@@ -839,8 +841,20 @@ did you do this ^^ ?
 
 # Supplemental Figures
 
-``` {r supplemental_figures}
+``` {r supplemental_table_1}
 
+# Site populations
+vt_rsv |> 
+  select(site, population_served) |> 
+  distinct(site, .keep_all = TRUE) |> 
+  kable(caption = "Figure S1. The population served by each participating NWSS site in Vermont.") |>
+  kable_styling(position = "center")
+
+```
+
+``` {r supplemental_figs}
+
+# Decomposition graphs for sites 1966 and 1975
 decomposed_1966 +
   decomposed_1975 +
   plot_annotation(
