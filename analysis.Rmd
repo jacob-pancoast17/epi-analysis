@@ -24,7 +24,24 @@ opts_chunk$set(echo = FALSE)
 
 ```
 
-``` {css}
+``` {r define_constants}
+
+body = 16
+
+font_sizes <- 
+  c(
+    body = 16,
+    h1 = 2 * body,
+    h2 = 1.7 * body,
+    h3 = 1.4 * body,
+    plot_title = 0.8 * body,
+    plot_facet = 0.6 * body,
+    plot_text = 0.4 * body
+  )
+
+```
+
+``` {css, include=FALSE}
 
 h1, h2, h3, h4 {
   font-family: Georgia, serif;
@@ -68,7 +85,7 @@ RSV epidemiology in the United States indicate RSV acivity increase in the fall 
 
 Clinically, RSV presents similarly to the other respiratory infections, including the common cold, influenza, and COVID-19. Due to these similarities, RSV is often misdiagnosed, especially in high risk populations^3^. Worldwide, RSV is a leading cause of acute lower respiratory infections among both children and elderly. In the United States alone, it was estimated to cause between 60,000 and 160,000 hospitalizations as well as 6,000-10,000 deaths annually among adults aged 65 and over in 2023^4^.
 
-``` {r flu_burden, fig.align = "center", fig.caption = "Figure 1. Estimated ranges of annual flu and RSV burdens. Figure 1A was obtained from the CDC and shows flu burden from 2010-2025. Figure 1B was created using data from a CDC MMWR report on RSV from 2023 estimating the annual burden."}
+``` {r flu_burden, fig.topcaption = TRUE, fig.cap = "**Figure 1.** Estimated ranges of annual flu and RSV burdens. Figure 1A was obtained from the CDC and shows flu burden from 2010-2025^5^. Figure 1B was created using data from a CDC MMWR report on RSV from 2023 estimating the annual burden."}
 
 flu_rsv_burdens <- 
   plot_spacer() +
@@ -91,13 +108,6 @@ flu_rsv_burdens <-
   
   plot_spacer() +
   
-  plot_annotation(
-    title = "Disease Burden for Flu and RSV",
-    theme = theme(
-      plot.title = element_text(hjust = 0.5, vjust = -2, size = (16 * 1.3))
-    )
-  ) +
-  
   plot_layout(
     widths = c(0.2, 1, 0.3, 1, 0.2)
   )
@@ -118,7 +128,7 @@ Currently, there is no central nationwide surveillance system for RSV in place, 
 
 The CDC collects data reported by state and local health departments through the National Wastewater Surveillance System (NWSS) supported by funding through the Epidemiology and Laboratory Capacity for the Prevention and Control of Emerging Infectious Diseases Cooperative Agreement^8^.
 
-``` {r NWSS_sites, fig.align = "center", fig.cap = "Figure 2. United States NWSS Sites reporting RSV concentrations as of May 14, 2026. Source: CDC Wastewater Monitoring Program^9^", out.width = "600px"}
+``` {r NWSS_sites, fig.topcaption = TRUE, fig.cap = "**Figure 2**. United States NWSS Sites reporting RSV concentrations as of May 14, 2026. Source: CDC Wastewater Monitoring Program^9^.", out.width = "600px"}
 
 include_graphics("figures/nwss_sites.png")
 
@@ -130,7 +140,7 @@ Wastewater collection differs between sites. Some sites may sample untreated was
 
 ## RSV in Vermont
 
-``` {r NREVSS_dash, fig.align = "center", fig.cap = "Figure 3. Percentage of positive RSV tests by state as of the week ending April 25, 2026. Source: CDC NREVSS Dashboard^10^", out.width = "800px"}
+``` {r NREVSS_dash, fig.topcaption = TRUE, fig.cap = "**Figure 3**. Percentage of positive RSV tests by state as of the week ending April 25, 2026. Source: CDC NREVSS Dashboard^10^.", out.width = "800px"}
 
 include_graphics("figures/rsv_quintiles.png")
 
@@ -140,15 +150,9 @@ As of late April 2026, Vermont had one of the highest proportions of positive RS
 
 # Methods
 
-CDC wastewater data for RSV was obtained from Data.CDC.gov. Each row of the data represents a wastewater sample for RSV from participating NWSS sewershed sites, including dates of collection^11^. Before analysis, the data was cleaned and visualized (Figure 4). The "pcr_target_avg_conc" column was chosen for analysis of RSV concentrations rather than "pcr_target_flowpop_lin" since the flow-population-normalized column had large amounts of missing data. Population differences between sites were small enough to accommodate this decision (Table S1).
+CDC wastewater data for RSV was obtained from Data.CDC.gov. Each row of the data represents a wastewater sample for RSV from participating NWSS sewershed sites, including dates of collection^11^. Before analysis, the data was cleaned and visualized (Figure 4). The "pcr_target_avg_conc" column was chosen for analysis of RSV concentrations rather than "pcr_target_flowpop_lin" since the flow-population-normalized column had large amounts of missing data. Population differences between sites were small enough to accommodate this decision (Table S1). During this step, a seven-day rolling average concentration was calculated for each data point to reduce noise and artifacts. This new column was used for all further analysis. 
 
-During this step a 7-day rolling average concentration was calculated for each data point to reduce noise and artifacts. All data cleaning, analyses, and visualizations were conducted using R (version 4.5.2; R Foundation)
-
-Had to use pcr_target_avg_conc rather than pcr_target_flowpop_lin because too much data was missing
-
-Population differences are small enough to accomodate this decision.
-
-
+All data cleaning, analyses, and visualizations were conducted using R (version 4.5.2; R Foundation).
 
 ``` {r clean_data, include=FALSE}
 vt_rsv <- 
@@ -223,11 +227,13 @@ exploratory <-
     ncol = 2,
     scales = 'free_y'
   ) + labs(
-    title = "RSV Wastewater Concentrations in Vermont",
+    title = NULL,
     y = "RSV Concentration",
     x = "Date",
     color = "Site number",
-    caption = "Source: CDC National Wastewater Surveillance System"
+    caption = "Source: CDC National Wastewater Surveillance System¹¹"
+  ) + theme(
+    strip.text = element_text(size = font_sizes["plot_facet"])
   )
 
 ```
@@ -237,10 +243,10 @@ exploratory <-
 data <- 
   ggplot_build(exploratory)$data[[2]]
 
-
 colors <- 
   unique(data$colour)
 
+# Define colors
 names(colors) <- 
   c(
     1965,
@@ -255,11 +261,9 @@ names(colors) <-
 
 ### Peak Comparison
 
-After data cleaning and exploratory analysis (Figure A), peak analysis was performed to identify per-site and per-season factors. Samples were grouped by respiratory virus season (October through May). Season boundaries were defined empirically using wastewater concentration thresholds. Season onset was defined as the first sample date with a concentration greater than the baseline of 0 following an off-season period, while season conclusion was defined as the last sample date with a concentration of 0 following an on-season period. Per site, seasons were compared using elapsed days since season onset to allow for peak comparison across seasons. 
+Peaks analysis was performed per site to identify per-site and per-season peaks across the data. Each sample was classified based on its respiratory virus season (October through May of the following year) including the start and end date of that season. Season boundaries were defined empirically using wastewater concentration thresholds. Season onset was defined as the first sample date with a concentration greater than the baseline of 0 following an off-season period, while season conclusion was defined as the last sample date with a concentration of 0 following an on-season period. Additional temporal information was added to each row, including days elapsed since season onset. To compare offsets in seasonality, June 1st was arbitrarily picked as an anchor date to classify days since previous off-season. 
 
-Peak years were calculated as the year containing the highest RSV concentration across the entire data set (Table 3)
-
-JUNE 1ST
+From this data, graphs comparing seasonal peaks were constructed. Tables were constructed to compare season lengths, peak days, and peak years for each site.
 
 ``` {r seasonal_cols, include=FALSE}
 
@@ -315,6 +319,18 @@ seasonal_offset <-
     facets = vars(facet_label),
     ncol = 2,
     scales = 'free_y'
+  ) +
+  labs(
+    title = NULL,
+    y = "Seven-Day Rolling Average of RSV Concentrations",
+    x = "Days Since June 1st of Previous Off-Season",
+    color = "Season",
+    caption = "Source: CDC National Wastewater Surveillance System¹¹"
+  ) +
+  theme(
+    plot.title = element_text(size = font_sizes["plot_title"],
+                              hjust = 0.5),
+    strip.text = element_text(size = font_sizes["facet_title"])
   )
 
 # Seasonal data by days since start of season
@@ -334,6 +350,15 @@ seasonal_peaks <-
     facets = vars(facet_label),
     ncol = 2,
     scales = 'free_y'
+  ) +
+  labs(
+    title = NULL,
+    y = "Seven-Day Rolling Average of RSV Concentration",
+    x = "Days Since Start of Season",
+    color = "Season",
+    caption = "Source: CDC National Wastewater Surveillance System¹¹"
+  ) + theme(
+    strip.text = element_text(size = font_sizes["facet_title"])
   )
 
 ```
@@ -420,7 +445,9 @@ seasonal_decomposition <- function(site_num) {
 
 ```
 
-To measure overall trends across each site, seasonal decomposition was used to decompose the trend into its trend-cycle, seasonal, and remainder components. Only the three sites containing consistent data spanning *$n \qe 3$* years (sites 1965, 1966, and 1975) were used for decomposition to reliably observe a trend spanning multiple years.
+For all further analysis, only the three sites containing consistent data spanning *$n \ge 3$* years (sites 1965, 1966, and 1975) due to inadequate coverage in the remaining sites.
+
+Seasonal decomposition visualizes trends across each site by decomposing a time series ($y_t$) into trend-cycle ($T_t$), seasonal ($S_t$), and remainder ($R_t$) components such that $y_t$ = $T_t$ * $S_t$ * $R_t$. A multiplicative decomposition was chosen due to variation in the trend-cycle. Seasonal decomposition requires continuous, regular time intervals, so dates were grouped by week, log transformed to normalize the right skew, and then averaged for each week. Data gaps were filled with *Concentration = 0* for *n = 3* weeks for site 1966 for the weeks of April 21, 2024; April 28, 2024; and May 5; 2024. After log transformation, the decomposition could be rewritten additively as $y_t$ = $T_t$ + $S_t$ + $R_t$.
 
 ``` {r seasonal_decomposition, include=FALSE}
 
@@ -550,30 +577,33 @@ peak_as_month_date <-
   }
 ```
 
-Per site and season, dates were grouped by week and averaged to create the continuous, regular time intervals required for this method. Gaps were filled with *Concentration = 0* for *n = 3* weeks for site 1966 for the weeks of April 21, 2024; April 28, 2024; and May 5; 2024 due to missing data. Prior to decomposition, RSV concentrations were transformed by natural log to normalize the skew in the data and convert the multiplicative decomposition into additive decomposition.
-
 ### Generalized Additive Model (GAM)
 
-A general additive model (GAM) was used to model the relationship between date and wastewater RSV concentrations over time, per site. As with seasonal decomposition, the same *n = 3* sites were used (1965, 1966, 1975) to provide enough data to build the model. Furthermore, the RSV concentrations were again transformed by natural log.
+Following descriptive analysis using decomposition, generalized additive models (GAM) were created to model RSV concentration over time. GAMs are useful tools to flexibly model non-linear relationships while maintaining high interpretability by utilizing additive structures. For this time series data, "days elapsed" and "day of the year" were used as predictors for GAMs to model both the long-term and seasonal trends.
 
-- used weekly mean log
+Prior to model fitting, building a GAM required modifications to the data. Data was grouped by site, and new columns were created for days elapsed since the site monitoring start date and the day of the year. The seven-day rolling average was also log transformed to normalize the right skew.
 
-- used smoothing spline
-
-- chose bs = cc for cyclic smoothing spline
+GAM models were fit using the mgcv^12^ package for sites 1965, 1966, and 1975. "Days elapsed" and "day of the year" were both fit as a smoothed curve to explain the weekly mean log RSV concentration. "Days elapsed" was based in a thin plate regression spline, which determines knot locations based on the data. "Day of the year" was based in a cyclic cubic spline to account for seasonal trends. REML smoothing parameter estimation was used to reduce the likelihood of oversmoothing the data.
 
 ```{r to_gam_format, include=FALSE}
 
+packageVersion("mgcv")
+
 to_gam <- 
   function(site_num) {
-    vt_rsv |> 
-    filter(site == site_num) |> 
-    mutate(
-      first_date = min(date),
-      days_elapsed = as.numeric(date - first_date),
-      day_of_year = yday(date),
-      weekly_mean_log = log1p(mean_7day)
-    )
+    
+    data <- 
+      vt_rsv |> 
+      filter(site == site_num) |> 
+      mutate(
+        first_date = min(date),
+        days_elapsed = as.numeric(date - first_date),
+        day_of_year = yday(date),
+        weekly_mean_log = log1p(mean_7day)
+        )
+    
+    return(data)
+    
   }
 
 ```
@@ -678,7 +708,7 @@ gam_graphed_1975 <-
 
 An initial overview of the data sought to visualize early patterns to note trend and seasonal observations, compare sites, and identify any initial limitations of further analysis.
 
-``` {r visualize_exploratory, fig.align = "center"}
+``` {r visualize_exploratory, fig.topcaption = TRUE, fig.cap = "**Figure 4**. Exploratory data analysis of RSV wastewater concentrations,\n faceted by NWSS collection site. Colored lines represent the calculated seven-day rolling average.\n RSV Concentrations should not be compared between sites^11^; Vermont, 2023-26."}
 
 exploratory
 
@@ -688,7 +718,7 @@ Exploratory visualizations revealed clear seasonal patterns around sites consist
 
 ## Peak analysis 
 
-``` {r visualize_seasonal_offset, fig.align = "center"}
+``` {r visualize_seasonal_offset, fig.topcaption = TRUE, fig.caption = "**Figure 5**. RSV wastewater concentrations in Vermont by day since the start of the on-season; Vermont, 2023-26"}
 
 seasonal_offset
 
@@ -712,7 +742,7 @@ Sites 1965, 1966, and 1975 report high spikes in RSV concentration during mid-la
 ``` {r season_lengths}
 
 szn_lengths |> 
-  kable(caption = "Table 1. Season lengths by site, including the averaged length.") |> 
+  kable(caption = "<b>Table 1.</b> Season lengths by site, including the averaged length.") |> 
   kable_styling(position = "center")
 
 ```
@@ -724,7 +754,7 @@ The 2023-2024 season was the longest season on average of the last three years.
 ``` {r peak_day}
 
 peak_days |> 
-  kable(caption = "Figure 2. Season peak days by site, including the average peak by season and site.") |> 
+  kable(caption = "<b>Table 2.</b> Season peak days by site, including the average peak by season and site.") |> 
   kable_styling(position = "center")
 
 ```
@@ -736,25 +766,13 @@ In the 2022-2023, 2023-2024, 2024-2025 and 2025-2026 seasons the most common pea
 ``` {r peak_year}
 
 peak_year |> 
-  kable(caption = "Figure 3. Peak year for each site.") |> 
+  kable(caption = "<b>Table 3.</b> Peak year for each site.") |> 
   kable_styling(position = "center")
 
 ```
 
 
 ## Seasonal Decomposition
-
-Seasonal decomposition measures three core components of the time series:
-
-$S_t$ = The **seasonal component** shows the seasonal pattern occurring over time.
-
-$T_t$ = The **trend-cycle component** shows the overall movement of the data over the time series.
-
-$R_t$ = The **remainder** component explains the difference between $y_t$ and $S_t + T_t$.
-
-at time period *t*
-
-such that $$ y_t $$ (Time series data) $$ = S_t + T_t + R_t $$
 
 ``` {r show_seasonal_decomposition, fig.align = "center"}
 
@@ -834,6 +852,7 @@ Showing the season was offset
 - what did vaccinations look like this year? were schedules extended? how did recommendations change?
 - this season is lasting longer, so season lengths could still be compared (Table 1)
 - why is site 1976 different 
+- cite packages
 
 As of late April 2026, Vermont had one of the highest proportions of positive RSV tests in the country (Figure 2). This report investigates temporal trends across Vermont's six NWSS monitoring sites from 2023-2026 to assess the burden of the 25-26 RSV season, aiming to evaluate how well the CDC's assessment of the 25-26 season^2^ generalizes to Vermont and discuss Vermont-specific response to RSV.
 
@@ -847,7 +866,7 @@ did you do this ^^ ?
 vt_rsv |> 
   select(site, population_served) |> 
   distinct(site, .keep_all = TRUE) |> 
-  kable(caption = "Figure S1. The population served by each participating NWSS site in Vermont.") |>
+  kable(caption = "<b>Table S1.</b> The population served by each participating NWSS site in Vermont.") |>
   kable_styling(position = "center")
 
 ```
@@ -891,6 +910,8 @@ gam_graphed_1975
 10. Centers for Disease Control and Prevention. The National Respiraory and Enteric Virus Surveillance System (NREVSS). https://www.cdc.gov/nrevss/php/dashboard/index.html. Updated June 18, 2025. Accessed May 14, 2026.
 
 11. Centers for Disease Control and Prevention. CDC Wastewater Data for RSV. https://data.cdc.gov/Public-Health-Surveillance/CDC-Wastewater-Data-for-RSV/45cq-cw4i/about_data. Updated May 18, 2026. Accessed May 19, 2026.
+
+12. Wood SN. Fast stable restricted maximum likelihood and marginal likelihood estimation of semiparametric generalized linear models. J R Stat Soc Series B Stat Methodol. 2011;73(1):3-36. doi:10.1111/j.1467-9868.2010.00749.x
 
 
 
