@@ -79,13 +79,13 @@ This is in progress.
 
 Respiratory syncytial virus (RSV) is a RNA virus belonging to the *Pneumoviridae* family of viruses. RSV infection is most often accompanied by difficulty breathing, coughing, sneezing, congestion, and decreased appetite. Less commonly, RSV can lead to more severe illnesses including [bronchiolitis](https://www.mayoclinic.org/diseases-conditions/bronchiolitis/symptoms-causes/syc-20351565) and [pneumonia](https://www.mayoclinic.org/diseases-conditions/pneumonia/symptoms-causes/syc-20354204). This type of progression of RSV is more commonly associated with high risk groups, including infants, young children, and older adults^1^.
 
-RSV epidemiology in the United States indicate RSV acivity increase in the fall (respiratory virus season) in the United States, peaking in the winter (December or January) before case numbers lower as spring approaches^1^. In the 2025-2026 season, the CDC identified RSV activity started later in most parts of the US, and also peaked later^2^.
+RSV epidemiology in the United States indicate RSV acivity increase in the fall (respiratory virus season) in the United States, peaking in the winter (December or January) before case numbers lower as spring approaches^1, 2^. In the 2025-2026 season, the CDC identified RSV activity started later in most parts of the US, and also peaked later^3^.
 
 ## Why is RSV Significant?
 
-Clinically, RSV presents similarly to the other respiratory infections, including the common cold, influenza, and COVID-19. Due to these similarities, RSV is often misdiagnosed, especially in high risk populations^3^. Worldwide, RSV is a leading cause of acute lower respiratory infections among both children and elderly. In the United States alone, it was estimated to cause between 60,000 and 160,000 hospitalizations as well as 6,000-10,000 deaths annually among adults aged 65 and over in 2023^4^.
+Clinically, RSV presents similarly to the other respiratory infections, including the common cold, influenza, and COVID-19. Due to these similarities, RSV is often misdiagnosed, especially in high risk populations^4^. Worldwide, RSV is a leading cause of acute lower respiratory infections among both children and elderly. In the United States alone, it was estimated to cause between 60,000 and 160,000 hospitalizations as well as 6,000-10,000 deaths annually among adults aged 65 and over in 2023^5^.
 
-``` {r flu_burden, fig.topcaption = TRUE, fig.cap = "**Figure 1.** Estimated ranges of annual flu and RSV burdens. Figure 1A was obtained from the CDC and shows flu burden from 2010-2025^5^. Figure 1B was created using data from a CDC MMWR report on RSV from 2023 estimating the annual burden."}
+``` {r flu_burden, fig.topcaption = TRUE, fig.cap = "**Figure 1.** Estimated ranges of annual flu and RSV burdens. Figure 1A was obtained from the CDC and shows flu burden from 2010-2025^6^. Figure 1B was created using data from a CDC MMWR report on RSV from 2023 estimating the annual burden."}
 
 flu_rsv_burdens <- 
   plot_spacer() +
@@ -116,41 +116,41 @@ flu_rsv_burdens
 
 ```
 
-The hospitalization rate for RSV may be between 2 - 4.4 times lower than influenza, while the mortality rate may be between 1.05 - 5.2 times lower than influenza (Figure 1). RSV also exhibits higher rates of pneumonia, hospitalization, and extended hospital stays compared to the flu^6^. Lowering the incidence of RSV would likely improve health outcomes for at-risk populations and reduce costs associated with prolonged hospital stays.
+The hospitalization rate for RSV may be between 2 - 4.4 times lower than influenza, while the mortality rate may be between 1.05 - 5.2 times lower than influenza (Figure 1). RSV also exhibits higher rates of pneumonia, hospitalization, and extended hospital stays compared to the flu^7^. Lowering the incidence of RSV would likely improve health outcomes for at-risk populations and reduce costs associated with prolonged hospital stays.
 
 ## RSV Monitoring Systems
 
-The RSV-Hospitalization Surveillance Network (RSV-NET) is a CDC-led program that monitors laboratory-confirmed RSV hospitalizations to estimate disease burden and identify trends in virus circulation^7^. Established in 2018, this program serves 14 states (found [here](https://www.cdc.gov/resp-net/dashboard/)) and over 170 counties. The National Respiratory and Eneteric Virus Surveillance System (NREVSS) measures weekly positive RSV tests since 1989 through voluntarily participating labs. RSV is frequently misdiagnosed and testing is underutilized, especially in vulnerable populations (socioeconomically disadvantaged, elderly, children). RSV-NET and NREVSS both suffer from this undercoverage bias in RSV data collection.
+The RSV-Hospitalization Surveillance Network (RSV-NET) is a CDC-led program that monitors laboratory-confirmed RSV hospitalizations to estimate disease burden and identify trends in virus circulation^8^. Established in 2018, this program serves 14 states (found [here](https://www.cdc.gov/resp-net/dashboard/)) and over 170 counties. The National Respiratory and Eneteric Virus Surveillance System (NREVSS) measures weekly positive RSV tests since 1989 through voluntarily participating labs. RSV is frequently misdiagnosed and testing is underutilized, especially in vulnerable populations (socioeconomically disadvantaged, elderly, children). RSV-NET and NREVSS both suffer from this undercoverage bias in RSV data collection.
 
 Currently, there is no central nationwide surveillance system for RSV in place, leading to large gaps of coverage in certain states.
 
 ## Wastewater Surveillance
 
-The CDC collects data reported by state and local health departments through the National Wastewater Surveillance System (NWSS) supported by funding through the Epidemiology and Laboratory Capacity for the Prevention and Control of Emerging Infectious Diseases Cooperative Agreement^8^.
+The CDC collects data reported by state and local health departments through the National Wastewater Surveillance System (NWSS) supported by funding through the Epidemiology and Laboratory Capacity for the Prevention and Control of Emerging Infectious Diseases Cooperative Agreement^9^.
 
-``` {r NWSS_sites, fig.topcaption = TRUE, fig.cap = "**Figure 2**. United States NWSS Sites reporting RSV concentrations as of May 14, 2026. Source: CDC Wastewater Monitoring Program^9^.", out.width = "600px"}
+``` {r NWSS_sites, fig.topcaption = TRUE, fig.cap = "**Figure 2**. United States NWSS Sites reporting RSV concentrations as of May 14, 2026. Source: CDC Wastewater Monitoring Program^10^.", out.width = "600px"}
 
 include_graphics("figures/nwss_sites.png")
 
 ```
 
-Sites across the country (Figure 2) are selected by local governments based on site effectiveness and population coverage. Many health departments prioritize enrolling sites with a high social vulnerability index to better represent vulnerable populations who may be underrepresented in clinical tests for respiratory viruses. 89% of sites are located at a wastewater treatment plant^8^.
+Sites across the country (Figure 2) are selected by local governments based on site effectiveness and population coverage. Many health departments prioritize enrolling sites with a high social vulnerability index to better represent vulnerable populations who may be underrepresented in clinical tests for respiratory viruses. 89% of sites are located at a wastewater treatment plant^9^.
 
-Wastewater collection differs between sites. Some sites may sample untreated wastewater (sewage and stormwater) or primary sludge (suspended solids from wastewater). Sampling methods also differ, including grab samples (from a point in time) or composite samples (aggregated grab samples). Sampling frequency also differs between sites^9^. For each sample, various metrics are recorded including flow rate, virus type, viral quantification, and contamination measurements. Each site is also associated with a region and population served^8, 9^. Viral quantification is measured using repeated PCR tests, and all data is submitted to the CDC.
+Wastewater collection differs between sites. Some sites may sample untreated wastewater (sewage and stormwater) or primary sludge (suspended solids from wastewater). Sampling methods also differ, including grab samples (from a point in time) or composite samples (aggregated grab samples). Sampling frequency also differs between sites^10^. For each sample, various metrics are recorded including flow rate, virus type, viral quantification, and contamination measurements. Each site is also associated with a region and population served^9, 10^. Viral quantification is measured using repeated PCR tests, and all data is submitted to the CDC.
 
 ## RSV in Vermont
 
-``` {r NREVSS_dash, fig.topcaption = TRUE, fig.cap = "**Figure 3**. Percentage of positive RSV tests by state as of the week ending April 25, 2026. Source: CDC NREVSS Dashboard^10^.", out.width = "800px"}
+``` {r NREVSS_dash, fig.topcaption = TRUE, fig.cap = "**Figure 3**. Percentage of positive RSV tests by state as of the week ending April 25, 2026. Source: CDC NREVSS Dashboard^11^.", out.width = "800px"}
 
 include_graphics("figures/rsv_quintiles.png")
 
 ```
 
-As of late April 2026, Vermont had one of the highest proportions of positive RSV tests in the country (Figure 3). This report investigates temporal trends across Vermont's six NWSS monitoring sites from 2023-2026 to assess the burden of the 25-26 RSV season, aiming to evaluate how well the CDC's assessment of the 25-26 season^2^ generalizes to Vermont and discuss Vermont-specific response to RSV.
+As of late April 2026, Vermont had one of the highest proportions of positive RSV tests in the country (Figure 3). This report investigates temporal trends across Vermont's six NWSS monitoring sites from 2023-2026 to assess the burden of the 25-26 RSV season, aiming to evaluate how well the CDC's assessment of the 25-26 season^3^ generalizes to Vermont and discuss Vermont-specific response to RSV.
 
 # Methods
 
-CDC wastewater data for RSV was obtained from Data.CDC.gov. Each row of the data represents a wastewater sample for RSV from participating NWSS sewershed sites, including dates of collection^11^. Before analysis, the data was cleaned and visualized (Figure 4). The "pcr_target_avg_conc" column was chosen for analysis of RSV concentrations rather than "pcr_target_flowpop_lin" since the flow-population-normalized column had large amounts of missing data. Population differences between sites were small enough to accommodate this decision (Table S1). During this step, a seven-day rolling average concentration was calculated for each data point to reduce noise and artifacts. This new column was used for all further analysis. 
+CDC wastewater data for RSV was obtained from Data.CDC.gov. Each row of the data represents a wastewater sample for RSV from participating NWSS sewershed sites, including dates of collection^12^. Before analysis, the data was cleaned and visualized (Figure 4). The "pcr_target_avg_conc" column was chosen for analysis of RSV concentrations rather than "pcr_target_flowpop_lin" since the flow-population-normalized column had large amounts of missing data. Population differences between sites were small enough to accommodate this decision (Table S1). During this step, a seven-day rolling average concentration was calculated for each data point to reduce noise and artifacts. This new column was used for all further analysis. 
 
 All data cleaning, analyses, and visualizations were conducted using R (version 4.5.2; R Foundation).
 
@@ -158,7 +158,7 @@ All data cleaning, analyses, and visualizations were conducted using R (version 
 vt_rsv <- 
   read.csv("CDC_RSV_Wastewater_Data.csv") |>
   
-  select(site, counties_served, sample_collect_date, pcr_target, pcr_target_avg_conc, pcr_target_avg_conc_lin, population_served) |>
+  select(site, counties_served, sample_collect_date, pcr_target, pcr_target_avg_conc, lod_sewage, population_served) |>
   
   filter(pcr_target == 'rsv',
          site != '1962') |> 
@@ -174,7 +174,13 @@ vt_rsv <-
          rsv_conc = as.numeric(gsub(",", "", rsv_conc)), # convert to a numeric column and remove commas
          county = as.factor(county), # convert to a factor
          site = as.factor(site), # convert to a factor
-         facet_label = paste0("Site ", site, ": ", county, " county")) # create a title column
+         facet_label = paste0("Site ", site, ": ", county, " county"),
+         lod_sewage = as.numeric(gsub(",", "", lod_sewage))
+         ) |>  # create a title column
+  
+  arrange(.by = date)
+
+vt_rsv
 
 ```
 
@@ -184,6 +190,8 @@ vt_rsv <-
 
 vt_rsv <-
   vt_rsv |> 
+  
+  select(-lod_sewage) |> 
   
   group_by(site) |> # group by site for calculating rolling average
   
@@ -267,36 +275,105 @@ From this data, graphs comparing seasonal peaks were constructed. Tables were co
 
 ``` {r seasonal_cols, include=FALSE}
 
-vt_rsv <- 
+vt_rsv_seasonal <- 
   vt_rsv |> 
+  arrange(.by = date) |> 
   
-  # Add a season column
+  group_by(site) |> 
+  
+  # Add season columns
   mutate(
+    # Is this date in season onset range?
+    onset_criteria = slide_index_lgl(
+      .x = rsv_conc,
+      .i = date,
+      # Onset criteria is defined as dates where all data within last
+      # 14 days is above 2 * LOD
+      .f = ~ all(.x > (2 * lod)),
+      .before = days(14)
+      ),
+    
+    offset_criteria = slide_index_lgl(
+      .x = rsv_conc,
+      .i = date,
+      # Offset criteria is defined as dates where only ~50% of samples during
+      # last 14 days had concentrations over 2 * LOD
+      .f = ~ mean(.x > (2 * lod), na.rm = TRUE) < 0.5,
+      .before = days(14)
+    ),
+    
+    # Add the season column
     season = case_when(
-      month(date) %in% 10:12 ~ paste0(year(date), "_", year(date)+1),
-      month(date) %in% 1:5 ~ paste0(year(date)-1, "_", year(date)),
-      TRUE ~ "off-season"
-    ),
+      # If in 2nd half of the year XX, the season is XX - X(X+1)
+      month(date) %in% 7:12 ~ paste0(year(date), "_", year(date)+1),
+      # If in 1st half of the year XX, the season is X(X-1) - XX
+      month(date) %in% 1:6 ~ paste0(year(date)-1, "_", year(date)),
+      ),
+    
+    # Starting year of the season
     starting_year = case_when(
-      month(date) %in% 6:12 ~ year(date),
-      month(date) %in% 1:5 ~ year(date) - 1,
-    ),
+      month(date) %in% 7:12 ~ year(date),
+      month(date) %in% 1:6 ~ year(date) - 1,
+    )
   ) |> 
   
-  # Add more info about that season
+  ungroup() |> 
+  
+  # Get rid of off-season
+  filter(season != 'off-season') |> 
+  
+  group_by(site, season) |> 
+  
+  # Get onset date and conclusion date of each season
   mutate(
-    # Add a column for the start and end date of that season
-    start_of_szn = min(date[rsv_conc > 0 & season != 'off_season'], na.rm = TRUE),
-    end_of_szn = max(date[rsv_conc == 0 & season != 'off_season'], na.rm = TRUE),
-    # Add a column for days since the start of that season
-    days_since_start_of_szn = if_else(
-      season != 'off-season' & rsv_conc > 0,
-      as.numeric(date - start_of_szn),
+    
+    # Onset date is defined as the first day in the second half of the year where all samples
+    # collected in a 14 day prior period have concentrations above 2 * LOD
+    onset = if_else(
+      
+      any(onset_criteria),
+      
+      # If there is any onset date, we have a minimum to pick as the onset
+       min(date[onset_criteria]),
+      
+      as.Date(NA)
+      ),
+    
+    # Offset date is defined as the first day after onset where 50% of the concentrations
+    # in the previous 14 days were below 2 * LOD
+    offset = case_when(
+      
+      any(offset_criteria & date > onset)
+      
+      # If there is an offset date that exists
+       min(date[offset_criteria & date > onset]),
+      
+      as.Date(NA)
+      )
+    
+  ) |> 
+
+  mutate(
+    
+    # Day of the current season
+    day_of_season = if_else(
+      season != 'off-season',
+      as.numeric(date - onset),
       as.numeric(NA)
       ),
-    days_since_prev_off_szn = date - make_date(year = starting_year, month = 6, day = 1),
-    .by = c(season, site)
-  )
+    
+    # DAys since off season
+    days_since_june_first = if_else(
+      season != 'off-season',
+      as.numeric(date - make_date(year = starting_year, month = 6, day = 1)),
+      as.numeric(NA)
+    )
+    
+  ) |> 
+  
+  ungroup()
+  
+  vt_rsv_seasonal
 
 ```
 
@@ -305,11 +382,11 @@ vt_rsv <-
 # Graph offset between seasons
 seasonal_offset <- 
   ggplot(
-    data = vt_rsv
+    data = vt_rsv |> filter(site %in% c(1965, 1966, 1975))
   ) +
   geom_line(
     mapping = aes(
-      x = days_since_prev_off_szn,
+      x = days_since_june_first,
       y = mean_7day,
       color = season
     )
@@ -336,11 +413,11 @@ seasonal_offset <-
 # Seasonal data by days since start of season
 seasonal_peaks <- 
   ggplot(
-  data = vt_rsv
+  data = vt_rsv |> filter(site %in% c(1965, 1966, 1975))
 ) +
   geom_line(
     mapping = aes(
-      x = days_since_start_of_szn,
+      x = day_of_season,
       y = mean_7day,
       color = season
     )
@@ -366,12 +443,13 @@ seasonal_peaks <-
 ``` {r create_tables, include=FALSE}
 
 # Compare peak days across sites and seasons
+vt_rsv
 peak_days <- 
   vt_rsv |> 
   summarise(
-    peak_day = start_of_szn[which.max(mean_7day)] + days(days_since_start_of_szn[which.max(mean_7day)]),
+    peak_day = onset[which.max(mean_7day)] + days(days_since_start_of_szn[which.max(mean_7day)]),
     .by = c(season, site)
-  ) |> 
+  ) #|> 
   filter(season != 'off-season') |> 
   pivot_wider(
     names_from = site,
@@ -583,7 +661,7 @@ Following descriptive analysis using decomposition, generalized additive models 
 
 Prior to model fitting, building a GAM required modifications to the data. Data was grouped by site, and new columns were created for days elapsed since the site monitoring start date and the day of the year. The seven-day rolling average was also log transformed to normalize the right skew.
 
-GAM models were fit using the mgcv^12^ package for sites 1965, 1966, and 1975. "Days elapsed" and "day of the year" were both fit as a smoothed curve to explain the weekly mean log RSV concentration. "Days elapsed" was based in a thin plate regression spline, which determines knot locations based on the data. "Day of the year" was based in a cyclic cubic spline to account for seasonal trends. REML smoothing parameter estimation was used to reduce the likelihood of oversmoothing the data.
+GAM models were fit using the mgcv^13^ package for sites 1965, 1966, and 1975. "Days elapsed" and "day of the year" were both fit as a smoothed curve to explain the weekly mean log RSV concentration. "Days elapsed" was based in a thin plate regression spline, which determines knot locations based on the data. "Day of the year" was based in a cyclic cubic spline to account for seasonal trends. REML smoothing parameter estimation was used to reduce the likelihood of oversmoothing the data.
 
 ```{r to_gam_format, include=FALSE}
 
@@ -708,7 +786,7 @@ gam_graphed_1975 <-
 
 An initial overview of the data sought to visualize early patterns to note trend and seasonal observations, compare sites, and identify any initial limitations of further analysis.
 
-``` {r visualize_exploratory, fig.topcaption = TRUE, fig.cap = "**Figure 4**. Exploratory data analysis of RSV wastewater concentrations,\n faceted by NWSS collection site. Colored lines represent the calculated seven-day rolling average.\n RSV Concentrations should not be compared between sites^11^; Vermont, 2023-26."}
+``` {r visualize_exploratory, fig.topcaption = TRUE, fig.cap = "**Figure 4**. Exploratory data analysis of RSV wastewater concentrations,\n faceted by NWSS collection site. Colored lines represent the calculated seven-day rolling average.\n RSV Concentrations should not be compared between sites^12^; Vermont, 2023-26."}
 
 exploratory
 
@@ -815,6 +893,7 @@ no hospitalizations
 data only covers 4 years maximum which really isn't enough
 why was the days elapsed since day chosen
 why was june 1st chosen as since off szn
+rsv not nationally tested
 
 # Discussion
 
@@ -837,7 +916,7 @@ Site 1965's overall trend of RSV concentrations this year increased and reached 
 
 ## Temporal Shifts
 
-The second aim of this study was to identify possible delayed onset in the current RSV season in Vermont. As of May 15, 2026, the CDC maintains that RSV activity began later than expected in most regions of the US^2^.
+The second aim of this study was to identify possible delayed onset in the current RSV season in Vermont. As of May 15, 2026, the CDC maintains that RSV activity began later than expected in most regions of the US^3^.
 
 Initial exploratory analysis provided no immediate insights into any temporal shift, however peak analysis quickly visualized an offset. For every site except 1967 (due to the aforementioned limitation) and 1976, RSV concentrations started increasing later than previous seasons and peaked later than earlier seasons. Peaks occurred around fifty days later this year among sites 1965, 1966, 1975, and 2350 (Figure 5). Figure 6, which compares peaks across sites and seasons by days since the start of the season, reveals the seasonal trend was not significantly different.
 
@@ -854,7 +933,7 @@ Showing the season was offset
 - why is site 1976 different 
 - cite packages
 
-As of late April 2026, Vermont had one of the highest proportions of positive RSV tests in the country (Figure 2). This report investigates temporal trends across Vermont's six NWSS monitoring sites from 2023-2026 to assess the burden of the 25-26 RSV season, aiming to evaluate how well the CDC's assessment of the 25-26 season^2^ generalizes to Vermont and discuss Vermont-specific response to RSV.
+As of late April 2026, Vermont had one of the highest proportions of positive RSV tests in the country (Figure 2). This report investigates temporal trends across Vermont's six NWSS monitoring sites from 2023-2026 to assess the burden of the 25-26 RSV season, aiming to evaluate how well the CDC's assessment of the 25-26 season^3^ generalizes to Vermont and discuss Vermont-specific response to RSV.
 
 did you do this ^^ ?
 
@@ -891,27 +970,32 @@ gam_graphed_1975
 
 1. Centers for Disease Control and Prevention. Respiratory Syncytial Virus. https://www.cdc.gov/rsv/about/index.html. Updated December 30, 2025. Accessed May 14, 2026.
 
-2. Centers for Disease Control and Prevention. Respiratory Illnesses. https://www.cdc.gov/respiratory-viruses/data/. Updated May 20, 2026. Accessed May 21, 2026.
+2. Chan EMG, Boehm AB. Respiratory Virus Season Surveillance in the United States Using
+Wastewater Metrics, 2023–2024. ACS ES&T Water. 2025;5(2):985-992.
+DOI: https://doi.org/10.1021/acsestwater.4c01013.
 
-3. Davido B, Loubet P. The silent surge: The under-recognised burden of respiratory syncytial virus, human metapneumovirus, and Parainfluenza viruses in adults. International Journal of Infectious Diseases. 2025;159:108006. DOI: http://doi.org/10.1016/j.ijid.2025.108006.
+3. Centers for Disease Control and Prevention. Respiratory Illnesses. https://www.cdc.gov/respiratory-viruses/data/. Updated May 20, 2026. Accessed May 21, 2026.
 
-4. Melgar M, Britton A, Roper LE, et al. Use of Respiratory Syncytial Virus Vaccines in Older Adults: Recommendations of the Advisory Committee on Immunization Practices — United States, 2023. MMWR Morb Mortal Wkly Rep 2023;72:793–801. DOI: http://dx.doi.org/10.15585/mmwr.mm7229a4.
+4. Davido B, Loubet P. The silent surge: The under-recognised burden of respiratory syncytial virus, human metapneumovirus, and Parainfluenza viruses in adults. International Journal of Infectious Diseases. 2025;159:108006. DOI: http://doi.org/10.1016/j.ijid.2025.108006.
 
-5. Centers for Disease Control and Prevention. Flu Burden. https://www.cdc.gov/flu-burden/php/about/index.html. Updated February 25, 2026. Accessed May 13, 2026.
+5. Melgar M, Britton A, Roper LE, et al. Use of Respiratory Syncytial Virus Vaccines in Older Adults: Recommendations of the Advisory Committee on Immunization Practices — United States, 2023. MMWR Morb Mortal Wkly Rep 2023;72:793–801. DOI: http://dx.doi.org/10.15585/mmwr.mm7229a4.
 
-6. Recto CG, Fourati S, Khellaf M, et al. Respiratory Syncytial Virus vs Influenza Virus Infection: Mortality and Morbidity Comparison Over 7 Epidemic Seasons in an Elderly Population. J Infect Dis. 2024;230(5):1130-1138. DOI: http://dx.doi.org/10.1093/infdis/jiae171
+6. Centers for Disease Control and Prevention. Flu Burden. https://www.cdc.gov/flu-burden/php/about/index.html. Updated February 25, 2026. Accessed May 13, 2026.
 
-7. https://www.cdc.gov/rsv/php/surveillance/rsv-net.html
+7. Recto CG, Fourati S, Khellaf M, et al. Respiratory Syncytial Virus vs Influenza Virus Infection: Mortality and Morbidity Comparison Over 7 Epidemic Seasons in an Elderly Population. J Infect Dis. 2024;230(5):1130-1138. DOI: http://dx.doi.org/10.1093/infdis/jiae171
 
-8. Adams C, Bias M, Welsh RM, et al. The National Wastewater Surveillance System (NWSS): From inception to widespread coverage, 2020-2022, United States. Sci Total Environ. 2024;924:171566. DOI: http://doi.org/10.1016/j.scitotenv.2024.171566.
+8. https://www.cdc.gov/rsv/php/surveillance/rsv-net.html
 
-9. Centers for Disease Control and Prevention. CDC's Wastewater Monitoring Program. https://www.cdc.gov/wastewater/about/index.html?cove-tab=3. Updated May 13, 2026. Accessed May 14, 2026.
+9. Adams C, Bias M, Welsh RM, et al. The National Wastewater Surveillance System (NWSS): From inception to widespread coverage, 2020-2022, United States. Sci Total Environ. 2024;924:171566. DOI: http://doi.org/10.1016/j.scitotenv.2024.171566.
 
-10. Centers for Disease Control and Prevention. The National Respiraory and Enteric Virus Surveillance System (NREVSS). https://www.cdc.gov/nrevss/php/dashboard/index.html. Updated June 18, 2025. Accessed May 14, 2026.
+10. Centers for Disease Control and Prevention. CDC's Wastewater Monitoring Program. https://www.cdc.gov/wastewater/about/index.html?cove-tab=3. Updated May 13, 2026. Accessed May 14, 2026.
 
-11. Centers for Disease Control and Prevention. CDC Wastewater Data for RSV. https://data.cdc.gov/Public-Health-Surveillance/CDC-Wastewater-Data-for-RSV/45cq-cw4i/about_data. Updated May 18, 2026. Accessed May 19, 2026.
+11. Centers for Disease Control and Prevention. The National Respiraory and Enteric Virus Surveillance System (NREVSS). https://www.cdc.gov/nrevss/php/dashboard/index.html. Updated June 18, 2025. Accessed May 14, 2026.
 
-12. Wood SN. Fast stable restricted maximum likelihood and marginal likelihood estimation of semiparametric generalized linear models. J R Stat Soc Series B Stat Methodol. 2011;73(1):3-36. doi:10.1111/j.1467-9868.2010.00749.x
+12. Centers for Disease Control and Prevention. CDC Wastewater Data for RSV. https://data.cdc.gov/Public-Health-Surveillance/CDC-Wastewater-Data-for-RSV/45cq-cw4i/about_data. Updated May 18, 2026. Accessed May 19, 2026.
+
+13. Wood SN. Fast stable restricted maximum likelihood and marginal likelihood estimation of semiparametric generalized linear models. J R Stat Soc Series B Stat Methodol. 2011;73(1):3-36. doi:10.1111/j.1467-9868.2010.00749.x
+
 
 
 
