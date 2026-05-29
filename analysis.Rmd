@@ -329,27 +329,53 @@ vt_rsv_seasonal <-
     
     # Onset date is defined as the first day in the second half of the year where all samples
     # collected in a 14 day prior period have concentrations above 2 * LOD
-    onset = if_else(
-      
-      any(onset_criteria),
+    onset = if (any(onset_criteria)) {
       
       # If there is any onset date, we have a minimum to pick as the onset
-       min(date[onset_criteria]),
+      min(date[onset_criteria])
+      
+    } else {
       
       as.Date(NA)
-      ),
+      
+    },
     
     # Offset date is defined as the first day after onset where 50% of the concentrations
     # in the previous 14 days were below 2 * LOD
-    offset = case_when(
-      
-      any(offset_criteria & date > onset)
+    offset = if (any(offset_criteria & !is.na(onset) & date > onset)) {
       
       # If there is an offset date that exists
-       min(date[offset_criteria & date > onset]),
+      min(date[offset_criteria & date > onset])
+      
+    } else {
       
       as.Date(NA)
-      )
+      
+    }
+    
+  ) |> 
+  
+  mutate(
+    
+    # Adjust periods outside of season offsets and offsets to off-season
+    season = case_when(
+      
+      # Missing onset
+      is.na(onset) ~ "Off-Season",
+      
+      # Ongoing season
+      is.na(offset) & date >= as.Date(onset) ~ season,
+      is.na(offset) & date < as.Date(onset) ~ "Off-Season",
+      
+      # Normal season
+      date >= as.Date(onset) & date <= as.Date(offset) ~ season,
+      
+      # Outside a normal season
+      date < as.Date(onset) | date > as.Date(offset) ~ "Off-Season",
+      
+      # Error catching
+      TRUE ~ 'Error'
+    )
     
   ) |> 
 
@@ -357,14 +383,14 @@ vt_rsv_seasonal <-
     
     # Day of the current season
     day_of_season = if_else(
-      season != 'off-season',
+      season != 'Off-Season',
       as.numeric(date - onset),
       as.numeric(NA)
       ),
     
     # DAys since off season
     days_since_june_first = if_else(
-      season != 'off-season',
+      season != 'Off-Season',
       as.numeric(date - make_date(year = starting_year, month = 6, day = 1)),
       as.numeric(NA)
     )
@@ -372,8 +398,6 @@ vt_rsv_seasonal <-
   ) |> 
   
   ungroup()
-  
-  vt_rsv_seasonal
 
 ```
 
@@ -382,7 +406,7 @@ vt_rsv_seasonal <-
 # Graph offset between seasons
 seasonal_offset <- 
   ggplot(
-    data = vt_rsv |> filter(site %in% c(1965, 1966, 1975))
+    data = vt_rsv_seasonal |> filter(site %in% c(1965, 1966, 1975))
   ) +
   geom_line(
     mapping = aes(
@@ -409,6 +433,7 @@ seasonal_offset <-
                               hjust = 0.5),
     strip.text = element_text(size = font_sizes["facet_title"])
   )
+
 
 # Seasonal data by days since start of season
 seasonal_peaks <- 
@@ -443,14 +468,17 @@ seasonal_peaks <-
 ``` {r create_tables, include=FALSE}
 
 # Compare peak days across sites and seasons
-vt_rsv
 peak_days <- 
-  vt_rsv |> 
+  vt_rsv_seasonal |> 
+  
+  group_by(season, site) |> 
+
   summarise(
-    peak_day = onset[which.max(mean_7day)] + days(days_since_start_of_szn[which.max(mean_7day)]),
-    .by = c(season, site)
-  ) #|> 
-  filter(season != 'off-season') |> 
+    peak_day = onset[which.max(mean_7day)] + days(day_of_season[which.max(mean_7day)]),
+  ) |> 
+  
+  filter(season != 'Off-Season') |> 
+  
   pivot_wider(
     names_from = site,
     values_from = c(peak_day)
@@ -459,6 +487,7 @@ peak_days <-
 # Add the average row
 peak_days <- 
   peak_days |>
+  
   bind_rows(
     peak_days |> 
       summarise(
@@ -467,15 +496,16 @@ peak_days <-
           ~ mean(.x, na.rm = TRUE)
         )
       ) |> 
-      mutate(
-        site = "average"
-      )
+      
+      mutate(site = "average")
   )
-  
 
-# Compare peak year for each site
+  # Compare peak year for each site
 peak_year <- 
-  vt_rsv |> 
+  vt_rsv_seasonal |> 
+  
+  filter(season != 'Off-Season') |> 
+  
   summarise(
     year = season[which.max(mean_7day)],
     .by = c(site)
@@ -483,19 +513,38 @@ peak_year <-
 
 # Mean season lengths across sites
 szn_lengths <- 
-  vt_rsv |> 
-  summarise(
-    szn_length = end_of_szn[which.max(mean_7day)] - start_of_szn[which.max(mean_7day)],
-    .by = c(season, site)
+  vt_rsv_seasonal |> 
+  
+  distinct(site, season, onset, offset) |> 
+  
+  filter(season != 'Off-Season') |>
+  
+  mutate(
+    
+    # Season lengths
+    season_length = if_else(
+      is.na(offset),
+      max(vt_rsv$date) - onset,
+      offset - onset
+    )
+    
   ) |> 
-  filter(season != 'off-season') |> 
-  group_by(season) |> 
+  
+  select(-onset, -offset) |> 
+  
   pivot_wider(names_from = site,
-              values_from = szn_length,
+              values_from = season_length,
               id_cols = season) |> 
-  rowwise() |> 
-  mutate(avg = round(mean(c_across('1965':'2350'), na.rm = TRUE), digits = 2)) |> 
-  ungroup()
+  
+  rowwise() |>
+
+  mutate(
+      
+    "Average length" = round(mean(c_across(-season), na.rm = TRUE), digits = 2),
+    
+    "Average length excluding low-data sites" = round(mean(c_across(-c(season, '1976', '2350', '1967')), na.rm = TRUE), digits = 2)
+    
+  )
 
 ```
 
@@ -814,6 +863,8 @@ A total of *n = 4* disjoint respiratory virus seasons were observed among the si
 Sites 1965, 1966, and 1975 report high spikes in RSV concentration during mid-late season 2023-2024. Excluding sites 1976 and 2350, RSV concentrations seem to be highest overall in the 2023-2024 and 2025-2026 seasons.
 
 ### Season Info {.tabset}
+
+As of May 19, 2026, the `r vt_rsv_seasonal |> distinct(site, season, onset, offset) |> filter(season != "Off-Season", is.na(offset)) |> pull(site) |> paste(collapse = ", "` seasons
 
 #### Season lengths (Table 1)
 
