@@ -180,8 +180,6 @@ vt_rsv <-
   
   arrange(.by = date)
 
-vt_rsv
-
 ```
 
 ``` {r rolling_avg, include=FALSE}
@@ -190,8 +188,6 @@ vt_rsv
 
 vt_rsv <-
   vt_rsv |> 
-  
-  select(-lod_sewage) |> 
   
   group_by(site) |> # group by site for calculating rolling average
   
@@ -283,22 +279,25 @@ vt_rsv_seasonal <-
   
   # Add season columns
   mutate(
+    
     # Is this date in season onset range?
-    onset_criteria = slide_index_lgl(
+    onset_criteria = slide_index2_lgl(
       .x = rsv_conc,
+      .y = lod_sewage,
       .i = date,
       # Onset criteria is defined as dates where all data within last
       # 14 days is above 2 * LOD
-      .f = ~ all(.x > (2 * lod)),
+      .f = ~ all(.x > (2 * .y)),
       .before = days(14)
       ),
     
-    offset_criteria = slide_index_lgl(
+    offset_criteria = slide_index2_lgl(
       .x = rsv_conc,
+      .y = lod_sewage,
       .i = date,
       # Offset criteria is defined as dates where only ~50% of samples during
       # last 14 days had concentrations over 2 * LOD
-      .f = ~ mean(.x > (2 * lod), na.rm = TRUE) < 0.5,
+      .f = ~ mean(.x > (2 * .y), na.rm = TRUE) < 0.5,
       .before = days(14)
     ),
     
@@ -438,7 +437,7 @@ seasonal_offset <-
 # Seasonal data by days since start of season
 seasonal_peaks <- 
   ggplot(
-  data = vt_rsv |> filter(site %in% c(1965, 1966, 1975))
+  data = vt_rsv_seasonal |> filter(site %in% c(1965, 1966, 1975))
 ) +
   geom_line(
     mapping = aes(
@@ -480,25 +479,23 @@ peak_days <-
   filter(season != 'Off-Season') |> 
   
   pivot_wider(
-    names_from = site,
-    values_from = c(peak_day)
-  ) 
-
-# Add the average row
-peak_days <- 
-  peak_days |>
+    names_from = season,
+    values_from = peak_day
+  ) |>
   
-  bind_rows(
-    peak_days |> 
-      summarise(
-        across(
-          where(is.Date),
-          ~ mean(.x, na.rm = TRUE)
-        )
-      ) |> 
-      
-      mutate(site = "average")
-  )
+  rowwise() |> 
+  
+  mutate(
+    avg = format(
+      as.Date(
+        mean(
+          as.numeric(format(c_across(-site), "%j")), 
+          na.rm = TRUE
+          )
+        ), 
+      "%m-%d"
+      )
+    )
 
   # Compare peak year for each site
 peak_year <- 
@@ -532,17 +529,51 @@ szn_lengths <-
   
   select(-onset, -offset) |> 
   
-  pivot_wider(names_from = site,
-              values_from = season_length,
-              id_cols = season) |> 
+  pivot_wider(names_from = season,
+              values_from = season_length) |> 
   
   rowwise() |>
 
   mutate(
       
-    "Average length" = round(mean(c_across(-season), na.rm = TRUE), digits = 2),
+    avg_szn_length_per_site = round(mean(c_across(-site), na.rm = TRUE), digits = 2)
     
-    "Average length excluding low-data sites" = round(mean(c_across(-c(season, '1976', '2350', '1967')), na.rm = TRUE), digits = 2)
+  ) |> 
+  
+  ungroup()
+
+szn_lengths <- 
+  szn_lengths |>
+  
+  bind_rows(
+    
+    # Get season length per year
+    szn_lengths |> 
+      
+    summarise(
+    
+      site = "avg_szn_length_per_year",
+      across(-site, ~ mean(.x, na.rm = TRUE))
+             
+    ),
+    
+    #Get season length per year excluding low data
+    szn_lengths |>
+      
+      filter(site %in% c('1965', '1966', '1975')) |> 
+
+      summarise(
+
+        site = "avg_szn_length_per_year_excl_low_data",
+        across(-site, ~ mean(.x, na.rm = TRUE))
+
+      )
+    
+  ) |> 
+  
+  mutate(
+    
+    across(-site, ~ round(as.numeric(.), digits = 2))
     
   )
 
@@ -552,22 +583,29 @@ szn_lengths <-
 
 ``` {r seasonal_decomposition_func, include=FALSE}
 
-seasonal_decomposition <- function(site_num) {
-  dcmp <- 
+seasonal_decomposition <- function(the_site) {
+  
+  return(
     vt_rsv |> 
-    filter(site == site_num) |>
+    
+    filter(site == the_site) |>
+    
     select(date, rsv_conc) |>
+    
     mutate(week = floor_date(date, 'week'), # Change dates to per week
            rsv_conc = log1p(rsv_conc)) |> # Transform rsv_conc by log
+    
     group_by(week) |> 
     summarise(weekly_mean = mean(rsv_conc, na.rm = TRUE)) |> # Create weekly mean
+    
     as_tsibble(index=week) |> # Convert to tsibble
+    
     fill_gaps() |> 
+    
     mutate(
       weekly_mean = replace_na(weekly_mean, 0)
     )
-  
-  return(dcmp)
+    )
 }
 
 ```
@@ -864,14 +902,31 @@ Sites 1965, 1966, and 1975 report high spikes in RSV concentration during mid-la
 
 ### Season Info {.tabset}
 
-As of May 19, 2026, the `r vt_rsv_seasonal |> distinct(site, season, onset, offset) |> filter(season != "Off-Season", is.na(offset)) |> pull(site) |> paste(collapse = ", "` seasons
+As of May 19, 2026, the `r vt_rsv_seasonal |> distinct(site, season, onset, offset) |> filter(season != "Off-Season", is.na(offset)) |> pull(site) |> paste(collapse = ", ")` seasons were still ongoing
 
 #### Season lengths (Table 1)
 
 ``` {r season_lengths}
 
 szn_lengths |> 
-  kable(caption = "<b>Table 1.</b> Season lengths by site, including the averaged length.") |> 
+  
+  mutate(
+
+    across(-site, ~ as.character(.)),
+    across(-site, ~ replace_na(., "—")),
+    site = case_when(
+      
+      site == 'avg_szn_length_per_year' ~ "Avg. / year (all sites)",
+      site == 'avg_szn_length_per_year_excl_low_data' ~ "Avg. / year (excl. low-data sites)", 
+      TRUE ~ site
+      
+    )
+    
+  ) |> 
+  
+  kable(caption = "<b>Table 1.</b> Season lengths by site, including the averaged length.",
+        col.names = c("Site", "2022-2023", "2023-2024", "2024-2025", "2025-2026", "Avg. / site")) |> 
+  
   kable_styling(position = "center")
 
 ```
@@ -883,8 +938,19 @@ The 2023-2024 season was the longest season on average of the last three years.
 ``` {r peak_day}
 
 peak_days |> 
-  kable(caption = "<b>Table 2.</b> Season peak days by site, including the average peak by season and site.") |> 
+  
+  mutate(
+    
+    across(-site, ~ as.character(.)),
+    across(-site, ~ replace_na(., "—"))
+    
+  ) |> 
+  
+  kable(caption = "<b>Table 2.</b> Season peak days by site, including the average peak by season and site.",
+        col.names = c("Site", "2022-2023", "2023-2024", "2024-2025", "2025-2026", "Avg. / site")) |> 
+  
   kable_styling(position = "center")
+
 
 ```
 
@@ -895,7 +961,17 @@ In the 2022-2023, 2023-2024, 2024-2025 and 2025-2026 seasons the most common pea
 ``` {r peak_year}
 
 peak_year |> 
-  kable(caption = "<b>Table 3.</b> Peak year for each site.") |> 
+  
+  mutate(
+    
+    across(-site, ~ as.character(.)),
+    across(-site, ~ replace_na(., "—"))
+    
+  ) |> 
+  
+  kable(caption = "<b>Table 3.</b> Peak year for each site.",
+        col.names = c("Site", "Year")) |> 
+  
   kable_styling(position = "center")
 
 ```
