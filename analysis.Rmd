@@ -1,8 +1,11 @@
 ---
-title: "Temporal Trends in RSV Wastewater Concentrations Across Vermont NWSS Monitoring Sites, 2023-2026"
-date: "May 23, 2026"
+title: "Temporal Trends in RSV Wastewater Concentrations Across Vermont NWSS Monitoring
+  Sites, 2023-2026"
 author: "Jacob Pancoast"
-output: html_document
+date: "May 23, 2026"
+output:
+  html_document: default
+  pdf_document: default
 ---
 
 ```{r setup, include=FALSE}
@@ -20,7 +23,7 @@ pacman::p_load(gratia,
                patchwork,
                cowplot)
 
-opts_chunk$set(echo = FALSE)
+opts_chunk$set(echo = FALSE, warning = FALSE)
 
 ```
 
@@ -79,7 +82,7 @@ This is in progress.
 
 Respiratory syncytial virus (RSV) is a RNA virus belonging to the *Pneumoviridae* family of viruses. RSV infection is most often accompanied by difficulty breathing, coughing, sneezing, congestion, and decreased appetite. Less commonly, RSV can lead to more severe illnesses including [bronchiolitis](https://www.mayoclinic.org/diseases-conditions/bronchiolitis/symptoms-causes/syc-20351565) and [pneumonia](https://www.mayoclinic.org/diseases-conditions/pneumonia/symptoms-causes/syc-20354204). This type of progression of RSV is more commonly associated with high risk groups, including infants, young children, and older adults^1^.
 
-RSV epidemiology in the United States indicate RSV acivity increase in the fall (respiratory virus season) in the United States, peaking in the winter (December or January) before case numbers lower as spring approaches^1, 2^. In the 2025-2026 season, the CDC identified RSV activity started later in most parts of the US, and also peaked later^3^.
+RSV epidemiology in the United States indicate RSV activity increase in the fall (respiratory virus season) in the United States, peaking in the winter (December or January) before case numbers lower as spring approaches^1,2^. In the 2025-2026 season, the CDC identified RSV activity started later in most parts of the US, and also peaked later^3^.
 
 ## Why is RSV Significant?
 
@@ -134,9 +137,9 @@ include_graphics("figures/nwss_sites.png")
 
 ```
 
-Sites across the country (Figure 2) are selected by local governments based on site effectiveness and population coverage. Many health departments prioritize enrolling sites with a high social vulnerability index to better represent vulnerable populations who may be underrepresented in clinical tests for respiratory viruses. 89% of sites are located at a wastewater treatment plant^9^.
+Sites across the country (Figure 2) are selected by local governments based on site effectiveness and population coverage. Many health departments prioritize enrolling sites with a high social vulnerability index to better represent vulnerable populations who may be underrepresented in clinical tests for respiratory viruses. 89% of sites are located at a wastewater treatment plant^9^. In Vermont the number of NWSS-participating wastewater treatment sites is low (n = 6) compared to states with similar population density (Minnesota, n = 29; West Virginia, n = 17)^11^. Undercoverage in Vermont may affect surveillance and health outcomes. 
 
-Wastewater collection differs between sites. Some sites may sample untreated wastewater (sewage and stormwater) or primary sludge (suspended solids from wastewater). Sampling methods also differ, including grab samples (from a point in time) or composite samples (aggregated grab samples). Sampling frequency also differs between sites^10^. For each sample, various metrics are recorded including flow rate, virus type, viral quantification, and contamination measurements. Each site is also associated with a region and population served^9, 10^. Viral quantification is measured using repeated PCR tests, and all data is submitted to the CDC.
+Wastewater collection differs between sites. Some sites may sample untreated wastewater (sewage and stormwater) or primary sludge (suspended solids from wastewater). Sampling methods also differ, including grab samples (from a point in time) or composite samples (aggregated grab samples). Sampling frequency also differs between sites^10^. For each sample, various metrics are recorded including flow rate, virus type, viral quantification, and contamination measurements. Each site is also associated with a region and population served^9,10^. Viral quantification is measured using repeated PCR tests, and all data is submitted to the CDC.
 
 ## RSV in Vermont
 
@@ -146,11 +149,11 @@ include_graphics("figures/rsv_quintiles.png")
 
 ```
 
-As of late April 2026, Vermont had one of the highest proportions of positive RSV tests in the country (Figure 3). This report investigates temporal trends across Vermont's six NWSS monitoring sites from 2023-2026 to assess the burden of the 25-26 RSV season, aiming to evaluate how well the CDC's assessment of the 25-26 season^3^ generalizes to Vermont and discuss Vermont-specific response to RSV.
+As of late April 2026, Vermont had one of the highest proportions of positive RSV tests in the country (Figure 3). This report investigates temporal trends across Vermont's six NWSS monitoring sites from 2023-26 to assess the burden of the 20225-26 RSV season, aiming to evaluate how well the CDC's assessment of the 2025-26 season^3^ generalizes to Vermont and discuss Vermont-specific response to RSV.
 
 # Methods
 
-CDC wastewater data for RSV was obtained from Data.CDC.gov. Each row of the data represents a wastewater sample for RSV from participating NWSS sewershed sites, including dates of collection^12^. Before analysis, the data was cleaned and visualized (Figure 4). The "pcr_target_avg_conc" column was chosen for analysis of RSV concentrations rather than "pcr_target_flowpop_lin" since the flow-population-normalized column had large amounts of missing data. Population differences between sites were small enough to accommodate this decision (Table S1). During this step, a seven-day rolling average concentration was calculated for each data point to reduce noise and artifacts. This new column was used for all further analysis. 
+CDC wastewater data for RSV was obtained from Data.CDC.gov. Each row of the data represents a wastewater sample for RSV from participating NWSS sites, including dates of collection^12^. The "pcr_target_avg_conc" column was chosen for analysis of RSV concentrations rather than "pcr_target_flowpop_lin" since the flow-population-normalized column had large amounts of missing data. Population differences between sites were small enough to accommodate this decision (Table S1). Before analysis, the data was cleaned and visualized. During this step, a seven-day rolling average concentration was calculated for each data point to reduce noise and artifacts. This new column was used for all further analysis. 
 
 All data cleaning, analyses, and visualizations were conducted using R (version 4.5.2; R Foundation).
 
@@ -171,11 +174,11 @@ vt_rsv <-
          rsv_conc = pcr_target_avg_conc) |> 
   
   mutate(date = ymd(date), # date
-         rsv_conc = as.numeric(gsub(",", "", rsv_conc)), # convert to a numeric column and remove commas
+         rsv_conc = as.numeric(str_replace_all(rsv_conc, ",", "")), # convert to a numeric column and remove commas
          county = as.factor(county), # convert to a factor
          site = as.factor(site), # convert to a factor
          facet_label = paste0("Site ", site, ": ", county, " county"),
-         lod_sewage = as.numeric(gsub(",", "", lod_sewage))
+         lod_sewage = as.numeric(str_replace_all(lod_sewage, ",", ""))
          ) |>  # create a title column
   
   arrange(.by = date)
@@ -224,6 +227,7 @@ exploratory <-
       color = site
     )
   ) +
+  scale_y_continuous(labels = scales::comma) +
   theme() +
   theme_minimal() +
   facet_wrap(
@@ -263,11 +267,17 @@ names(colors) <-
 
 ```
 
+### Site Comparison
+
+Each sample was classified by season (starting in July, through June of the following year). Without benchmark clinical indicators to define seasonality (D9, D10), season onset and offset were defined using the methodology for WBE outlined in Boehm et. al ^13,14,15^. For each individual site, season onset was defined as the first day in the second half of the year where 100% of samples collected in a 14 day look back period had an RSV concentration equal to or above 2 times the limit of detection for that site. Season offset was defined as the first day following a season onset date where 50% or less of the samples collected in a 14 day lookback had concentrations above or equal to 2 times the limit of detection for that site. This method was originally described for sites that measure viral concentration in copies per dry gram of sludge, however here it was extended to sites measuring copies per liter of wastewater. The threshold proportion was preserved by using the individual limit of detection for each site.
+
+From this data, tables were constructed to compare season lengths, peak days, peak years for each site, and season onsets and offsets.
+
 ### Peak Comparison
 
-Peaks analysis was performed per site to identify per-site and per-season peaks across the data. Each sample was classified based on its respiratory virus season (October through May of the following year) including the start and end date of that season. Season boundaries were defined empirically using wastewater concentration thresholds. Season onset was defined as the first sample date with a concentration greater than the baseline of 0 following an off-season period, while season conclusion was defined as the last sample date with a concentration of 0 following an on-season period. Additional temporal information was added to each row, including days elapsed since season onset. To compare offsets in seasonality, June 1st was arbitrarily picked as an anchor date to classify days since previous off-season. 
+Peaks analysis was performed to identify per-site and per-season peaks across the data. 
 
-From this data, graphs comparing seasonal peaks were constructed. Tables were constructed to compare season lengths, peak days, and peak years for each site.
+Additional temporal information was added to each row, including "days elapsed since season onset", and "days elapsed since last anchor date". To compare offsets in seasonality, June 1st was picked as the anchor date since it never fell in-season. From this data, graphs comparing seasonal peaks were constructed. 
 
 ``` {r seasonal_cols, include=FALSE}
 
@@ -317,9 +327,6 @@ vt_rsv_seasonal <-
   ) |> 
   
   ungroup() |> 
-  
-  # Get rid of off-season
-  filter(season != 'off-season') |> 
   
   group_by(site, season) |> 
   
@@ -414,6 +421,7 @@ seasonal_offset <-
       color = season
     )
   ) +
+  scale_y_continuous(labels = scales::comma) +
   theme_minimal() +
   facet_wrap(
     facets = vars(facet_label),
@@ -446,6 +454,7 @@ seasonal_peaks <-
       color = season
     )
   ) +
+  scale_y_continuous(labels = scales::comma) +
   theme_minimal() +
   facet_wrap(
     facets = vars(facet_label),
@@ -481,7 +490,18 @@ peak_days <-
   pivot_wider(
     names_from = season,
     values_from = peak_day
-  ) |>
+  )
+
+peak_days <- 
+  peak_days |> 
+  
+  bind_rows(
+    
+    peak_days |>
+      
+      summarise(site = "avg_peak_day_per_season",
+                across(-site, ~ mean(.x, na.rm = TRUE)))
+  ) |> 
   
   rowwise() |> 
   
@@ -536,7 +556,8 @@ szn_lengths <-
 
   mutate(
       
-    avg_szn_length_per_site = round(mean(c_across(-site), na.rm = TRUE), digits = 2)
+    avg_szn_length_per_site = mean(c_across(-site), na.rm = TRUE),
+    avg_szn_length_per_site_excl_22_23 = mean(c_across(-c(site, '2022_2023')), na.rm = TRUE)
     
   ) |> 
   
@@ -577,6 +598,19 @@ szn_lengths <-
     
   )
 
+onset_offset <- 
+  
+  vt_rsv_seasonal |> 
+  
+  distinct(site, season, onset, offset) |> 
+  
+  filter(season != "Off-Season") |> 
+  
+  group_by(season) |> 
+  
+  summarise(average_onset = mean(onset, na.rm = TRUE),
+            average_offset = mean(offset, na.rm = TRUE))
+
 ```
 
 ### Seasonal Decomposition
@@ -610,9 +644,13 @@ seasonal_decomposition <- function(the_site) {
 
 ```
 
-For all further analysis, only the three sites containing consistent data spanning *$n \ge 3$* years (sites 1965, 1966, and 1975) due to inadequate coverage in the remaining sites.
+For all further analysis, only the three sites containing consistent data spanning *$n \ge 3$* years were used (sites 1965, 1966, and 1975) due to inadequate coverage in the remaining sites.
 
-Seasonal decomposition visualizes trends across each site by decomposing a time series ($y_t$) into trend-cycle ($T_t$), seasonal ($S_t$), and remainder ($R_t$) components such that $y_t$ = $T_t$ * $S_t$ * $R_t$. A multiplicative decomposition was chosen due to variation in the trend-cycle. Seasonal decomposition requires continuous, regular time intervals, so dates were grouped by week, log transformed to normalize the right skew, and then averaged for each week. Data gaps were filled with *Concentration = 0* for *n = 3* weeks for site 1966 for the weeks of April 21, 2024; April 28, 2024; and May 5; 2024. After log transformation, the decomposition could be rewritten additively as $y_t$ = $T_t$ + $S_t$ + $R_t$.
+Seasonal-Trend decomposition using Loess (STL) decomposes a time series ($y_t$) into trend-cycle ($T_t$), seasonal ($S_t$), and remainder ($R_t$) components such that $y_t$ = $T_t$ + $S_t$ + $R_t$. Classical decomposition may also be multiplicative, however STL only supports additive decomposition. Using this method, graphs of each component per site were created to compare trends across sites.
+
+For this data, a multiplicative decomposition was more appropriate due to proportional variation in the magnitude of seasonal fluctuations over the time series. Since STL only supports an additive decomposition, concentrations were log transformed to convert the multiplicative structure to additive, while also normalizing the right skew in the data.
+
+Concentrations were then grouped by week and averaged to create the regular weekly intervals required for decomposition. Data gaps in site 1966 were filled with *concentration = 0* for the weeks of April 21, 2024; April 28, 2024; and May 5; 2024. 
 
 ``` {r seasonal_decomposition, include=FALSE}
 
@@ -744,11 +782,13 @@ peak_as_month_date <-
 
 ### Generalized Additive Model (GAM)
 
-Following descriptive analysis using decomposition, generalized additive models (GAM) were created to model RSV concentration over time. GAMs are useful tools to flexibly model non-linear relationships while maintaining high interpretability by utilizing additive structures. For this time series data, "days elapsed" and "day of the year" were used as predictors for GAMs to model both the long-term and seasonal trends.
+STL decomposition identified long-term trend and seasonality were the dominant sources of variation in Vermont's RSV wastewater concentration, informing predictor selection for a generalized additive model (GAM). GAMs model data as the sum of smooth, independent functions for each predictor. This creates a highly interpretable model that can flexibly model non-linear relationships.
 
-Prior to model fitting, building a GAM required modifications to the data. Data was grouped by site, and new columns were created for days elapsed since the site monitoring start date and the day of the year. The seven-day rolling average was also log transformed to normalize the right skew.
+Data was filtered and grouped by each relevant site. For each sample, four columns were added: the first collection date for the site; days elapsed since that date; the log-transformed rolling 7-day average; and the day of the year.
 
-GAM models were fit using the mgcv^13^ package for sites 1965, 1966, and 1975. "Days elapsed" and "day of the year" were both fit as a smoothed curve to explain the weekly mean log RSV concentration. "Days elapsed" was based in a thin plate regression spline, which determines knot locations based on the data. "Day of the year" was based in a cyclic cubic spline to account for seasonal trends. REML smoothing parameter estimation was used to reduce the likelihood of oversmoothing the data.
+GAM models were fit using the mgcv^16^ package. The predictors---days elapsed and day of the year---were both fit as a smoothed curve to explain the weekly mean log RSV concentration. "Days elapsed" was based in a thin plate regression spline, which determines knot locations based on the data. "Day of the year" was based in a cyclic cubic spline to account for seasonal trends. REML smoothing parameter estimation was used to reduce the likelihood of oversmoothing the data.
+
+The significance of each smooth term was assessed using approximate p-values from the model summary.
 
 ```{r to_gam_format, include=FALSE}
 
@@ -873,36 +913,17 @@ gam_graphed_1975 <-
 
 An initial overview of the data sought to visualize early patterns to note trend and seasonal observations, compare sites, and identify any initial limitations of further analysis.
 
-``` {r visualize_exploratory, fig.topcaption = TRUE, fig.cap = "**Figure 4**. Exploratory data analysis of RSV wastewater concentrations,\n faceted by NWSS collection site. Colored lines represent the calculated seven-day rolling average.\n RSV Concentrations should not be compared between sites^12^; Vermont, 2023-26."}
+``` {r visualize_exploratory, fig.topcaption = TRUE, fig.cap = "**Figure 4**. Exploratory data analysis of RSV wastewater concentrations,\n faceted by NWSS collection site. Colored lines represent the calculated seven-day rolling average.\n Note: per CDC guidance, RSV Concentrations should not be compared between sites due to different sample collection methods^12^; Vermont, 2023-26."}
 
 exploratory
 
 ```
 
-Exploratory visualizations revealed clear seasonal patterns around sites consistent with known information surrounding RSV epidemiology. Concentrations begin to increase in the Fall and peak typically in January or February before declining again in April to May. This pattern was consistent across all sites. Only sites 1965, 1966, and 1975 contained three full seasons worth of data, providing enough data for further statistical tests (seasonal decomposition and GAM).
-
-## Peak analysis 
-
-``` {r visualize_seasonal_offset, fig.topcaption = TRUE, fig.caption = "**Figure 5**. RSV wastewater concentrations in Vermont by day since the start of the on-season; Vermont, 2023-26"}
-
-seasonal_offset
-
-```
-
-Comparison of seasonal peak offsets reveal generally seasons occurring earlier in the study period exhibit earlier onset of RSV concentration increases. The 2023-2024 season rises and peaks early in sites 1965, 1966, and 1975 before the 2024-2025 and 2025-2026 seasons rise. Peaks in the latter seasons appear to be between 30-50 (**QUANTIFY THIS**) days later than peaks in the 2023-2024 season. Data for site 2350 also supports this trend, excluding an early spike in concentration during the 2025-2026 season. Site 1976 maintains fairly similar peaks between the 2024-2025 season and the 2025-2026 season.
-
-``` {r visualize_seasonal_peaks, fig.align = "center"}
-
-seasonal_peaks
-
-```
-A total of *n = 4* disjoint respiratory virus seasons were observed among the six sites. Only sites 1965 and 1975 report on all *n = 4* seasons, including truncated data from the 2022-2023 season. Site 1966 excludes data from the 2022-2023 season and reports on the following seasons.
-
-Sites 1965, 1966, and 1975 report high spikes in RSV concentration during mid-late season 2023-2024. Excluding sites 1976 and 2350, RSV concentrations seem to be highest overall in the 2023-2024 and 2025-2026 seasons.
+Exploratory visualizations revealed clear seasonal patterns across sites consistent with known RSV epidemiology. Concentrations generally begin to increase in the fall and peak typically in January or February before declining again in April to May. This pattern was consistent across all sites. Only sites 1965, 1966, and 1975 contained three full seasons worth of data, providing enough data for further statistical tests (seasonal decomposition and GAM).
 
 ### Season Info {.tabset}
 
-As of May 19, 2026, the `r vt_rsv_seasonal |> distinct(site, season, onset, offset) |> filter(season != "Off-Season", is.na(offset)) |> pull(site) |> paste(collapse = ", ")` seasons were still ongoing
+The following tables summarize seasonal characteristics across Vermont's NWSS monitoring sites, including season lengths, season peaks, peak years per site, and season onset and offset dates. As of May 19, 2026, the 2025-26 season was still ongoing at sites `r vt_rsv_seasonal |> distinct(site, season, onset, offset) |> filter(season != "Off-Season", is.na(offset)) |> pull(site) |> paste(collapse = ", ")` in Vermont.
 
 #### Season lengths (Table 1)
 
@@ -916,22 +937,28 @@ szn_lengths |>
     across(-site, ~ replace_na(., "—")),
     site = case_when(
       
-      site == 'avg_szn_length_per_year' ~ "Avg. / year (all sites)",
-      site == 'avg_szn_length_per_year_excl_low_data' ~ "Avg. / year (excl. low-data sites)", 
-      TRUE ~ site
+      site == 'avg_szn_length_per_year' ~ "Avg. / season (all sites)",
+      site == 'avg_szn_length_per_year_excl_low_data' ~ "Avg. / season (excl. low-data sites)", 
+      TRUE ~ site 
       
     )
     
   ) |> 
   
   kable(caption = "<b>Table 1.</b> Season lengths by site, including the averaged length.",
-        col.names = c("Site", "2022-2023", "2023-2024", "2024-2025", "2025-2026", "Avg. / site")) |> 
+        col.names = c("Site", "2022-2023", "2023-2024", "2024-2025", "2025-2026", "Avg. / site (all years)", "Avg. / site (excl. 2022-23)"),
+        format = "html",
+        escape = FALSE) |> 
   
-  kable_styling(position = "center")
+  kable_styling(position = "center") |> 
+  
+  column_spec(c(6, 7), include_thead = TRUE, color = 'steelblue') |> 
+  
+  row_spec(c(7, 8), color = 'steelblue')
 
 ```
 
-The 2023-2024 season was the longest season on average of the last three years.
+Season lengths for 2022-23 are inaccurate due to large gaps in data for that season; data collection did not begin until late into the season's latter half. Sites 1967, 1976, 2350 have extremely low coverage---these sites were not used for further analysis due to insufficient data to meet the onset and offset detection threshold. Site 1975 had the longest seasons recorded, and season lengths were generally similar between sites 1965, 1966, and 1975. Across seasons, lengths were also relatively similar on average, excluding the ongoing 2025-26 and undercovered 2022-23 seasons. 
 
 #### Season peaks (Table 2)
 
@@ -942,19 +969,28 @@ peak_days |>
   mutate(
     
     across(-site, ~ as.character(.)),
-    across(-site, ~ replace_na(., "—"))
+    across(-site, ~ replace_na(., "—")),
+    site = if_else(
+      site == "avg_peak_day_per_season",
+      "Avg. / season",
+      site
+    )
     
   ) |> 
   
   kable(caption = "<b>Table 2.</b> Season peak days by site, including the average peak by season and site.",
         col.names = c("Site", "2022-2023", "2023-2024", "2024-2025", "2025-2026", "Avg. / site")) |> 
   
-  kable_styling(position = "center")
+  kable_styling(position = "center") |> 
+  
+  column_spec(6, include_thead = TRUE, color = 'steelblue') |> 
+  
+  row_spec(7, color = 'steelblue')
 
 
 ```
 
-In the 2022-2023, 2023-2024, 2024-2025 and 2025-2026 seasons the most common peak ranges were March, February, February, and late February.
+Seasonal peaks most commonly fall in early to mid-February. In 2025-26, the peak fell a month later in mid-March.
 
 #### Peak years (Table 3)
 
@@ -965,7 +1001,8 @@ peak_year |>
   mutate(
     
     across(-site, ~ as.character(.)),
-    across(-site, ~ replace_na(., "—"))
+    across(-site, ~ replace_na(., "—")),
+    year = str_replace_all(year, "_", "-")
     
   ) |> 
   
@@ -976,10 +1013,61 @@ peak_year |>
 
 ```
 
+The most common year with the highest peak for each site was 2023-24, followed by 2025-26. Site 1967's result is trivial since the site is limited to one year of data.
+
+#### Season onsets and offsets (Table 4)
+
+``` {r onset_offset}
+
+onset_offset |> 
+  
+  mutate(
+    average_onset = if_else(
+      season == '2022_2023',
+      "Low data",
+      as.character(average_onset)
+    ),
+    
+    average_offset = if_else(
+      season == '2025_2026',
+      "Ongoing",
+      as.character(average_offset)
+    ),
+    across(-season, ~ str_replace_all(., "_", "-"))
+  ) |> 
+  
+  kable(caption = "<b>Table 4.</b> Average season onset and offset each year",
+        col.names = c("Season", "Average Onset", "Average Offset")) |> 
+  
+  kable_styling(position = "center")
+
+```
+
+The 2022-23 season did not have enough data to attribute an onset date. The 2023-24 and 2024-25 seasons both began in mid to late December and ended in mid to late April. The 2022-23 season also offset in mid to late April, which may suggest greater data coverage would indicate season onset was similar to the following two seasons. The 2025-26 season began 2-3 weeks later in mid-January and was still ongoing as of May 19, 2026.
+
+## Peak analysis 
+
+``` {r visualize_seasonal_offset, fig.topcaption = TRUE, fig.caption = "**Figure 5**. RSV wastewater concentrations in Vermont by day since the start of the on-season; Vermont, 2023-26"}
+
+seasonal_offset
+
+```
+
+- the method used for cutoffs made some sites arbitrary
+
+Generally, seasons occurring earlier in the data collection periods exhibit earlier season onset and peak earlier. The 2023-24 season rises and peaks early across all sites before the 2024-25 and 2025-26 seasons rise. Peaks in the latter seasons appear to be between 30-50 days later than peaks in the 2023-2024 season. 
+
+``` {r visualize_seasonal_peaks}
+
+seasonal_peaks
+
+```
+
+The noted sites all showed high spikes in RSV concentration during mid-late season 2023-2024. RSV concentrations seem to be highest overall in the 2023-24 season in Chittenden county, while the 2025-26 season concentrations were the highest in Washington county.
 
 ## Seasonal Decomposition
 
-``` {r show_seasonal_decomposition, fig.align = "center"}
+``` {r show_seasonal_decomposition}
 
 decomposed_1965
   
@@ -997,7 +1085,7 @@ summary(gam_1965)
 summary(gam_1966)
 summary(gam_1975)
 
-gam_graphed_1975
+gam_graphed_1965
 
 ```
 The general additive model sums a smoothing spline of days elapsed since March 3, 2023 to a smoothing cyclic cubic spline of the day of the year. For all three sites, data was consistent.
@@ -1059,6 +1147,15 @@ Showing the season was offset
 - this season is lasting longer, so season lengths could still be compared (Table 1)
 - why is site 1976 different 
 - cite packages
+- the filled data likely made 2024 ending season shorter
+
+TO DO: check all # aare formatted correctly consistently
+check all tables/graphs have same font and stuff
+all headers are same size
+all figure references match
+standardize all dates to "2025-26"
+standardize numbers to all be numeric not words
+organize order of sites in graphs and tables
 
 As of late April 2026, Vermont had one of the highest proportions of positive RSV tests in the country (Figure 2). This report investigates temporal trends across Vermont's six NWSS monitoring sites from 2023-2026 to assess the burden of the 25-26 RSV season, aiming to evaluate how well the CDC's assessment of the 25-26 season^3^ generalizes to Vermont and discuss Vermont-specific response to RSV.
 
@@ -1117,11 +1214,17 @@ DOI: https://doi.org/10.1021/acsestwater.4c01013.
 
 10. Centers for Disease Control and Prevention. CDC's Wastewater Monitoring Program. https://www.cdc.gov/wastewater/about/index.html?cove-tab=3. Updated May 13, 2026. Accessed May 14, 2026.
 
-11. Centers for Disease Control and Prevention. The National Respiraory and Enteric Virus Surveillance System (NREVSS). https://www.cdc.gov/nrevss/php/dashboard/index.html. Updated June 18, 2025. Accessed May 14, 2026.
+11. Centers for Disease Control and Prevention. The National Respiratory and Enteric Virus Surveillance System (NREVSS). https://www.cdc.gov/nrevss/php/dashboard/index.html. Updated June 18, 2025. Accessed May 14, 2026.
 
 12. Centers for Disease Control and Prevention. CDC Wastewater Data for RSV. https://data.cdc.gov/Public-Health-Surveillance/CDC-Wastewater-Data-for-RSV/45cq-cw4i/about_data. Updated May 18, 2026. Accessed May 19, 2026.
 
-13. Wood SN. Fast stable restricted maximum likelihood and marginal likelihood estimation of semiparametric generalized linear models. J R Stat Soc Series B Stat Methodol. 2011;73(1):3-36. doi:10.1111/j.1467-9868.2010.00749.x
+13. Zulli A, Varkila MRJ, Parsonnet J, Wolfe MK, Boehm AB. Observations of Respiratory Syncytial Virus (RSV) Nucleic Acids in Wastewater Solids Across the United States in the 2022-2023 Season: Relationships with RSV Infection Positivity and Hospitalization Rates. ACS ES T Water. 2024;4(4):1657-1667. Published 2024 Feb 29. DOI: https://doi.org/10.1021/acsestwater.3c00725.
+
+14. Boehm AB, Wolfe MK, White BJ, Hughes B, Duong D, Bidwell A. More than a Tripledemic: Influenza A Virus, Respiratory Syncytial Virus, SARS-CoV-2, and Human Metapneumovirus in Wastewater during Winter 2022-2023. Environ Sci Technol Lett. 2023;10(8):622-627. Published 2023 Jul 20. DOI: https://doi.org/10.1021/acs.estlett.3c00385.
+
+15. Chan EMG, Boehm AB. Respiratory Virus Season Surveillance in the United States Using Wastewater Metrics, 2023-2024. ACS ES T Water. 2025;5(2):985-992. Published 2025 Jan 22. DOI: https://doi.org/10.1021/acsestwater.4c01013.
+
+16. Wood SN. Fast stable restricted maximum likelihood and marginal likelihood estimation of semiparametric generalized linear models. J R Stat Soc Series B Stat Methodol. 2011;73(1):3-36. DOI: https://doi.org/10.1111/j.1467-9868.2010.00749.x.
 
 
 
@@ -1144,5 +1247,10 @@ https://otexts.com/fpp3/components.html
 14. Belongia EA, King JP, Kieke BA, et al. Clinical Features, Severity, and Incidence of RSV Illness During 12 Consecutive Seasons in a Community Cohort of Adults ≥60 Years Old. Open Forum Infect Dis. 2018;5(12):ofy316. Published 2018 Nov 27. doi:10.1093/ofid/ofy316
 
 15. 
+
+
+
+
+
 
 
