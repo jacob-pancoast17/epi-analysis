@@ -71,9 +71,15 @@ body {
 ``` 
 
 <div style ="background-color: #d6d6d6; padding: 10px;">
-# Abstract
+# Summary
 
-This is in progress.
+### What is already known about this topic?
+
+In the United States, RSV seasonality has been disrupted following the COVID-19 pandemic. The 2025-26 RSV season was delayed but carried no more significant burden of disease. Temperate regions are subject to harsher, more condensed RSV seasons.
+
+### What is added by this report?
+
+Vermont has low population density and high risk for harsh RSV seasons. Vermont contributes minimally to national averages, and may be overlooked in national assessments of RSV burden. The 2025-26 season
 </div>
 
 # Introduction
@@ -407,12 +413,20 @@ vt_rsv_seasonal <-
 
 ```
 
-``` {r plot_seasonal_peaks}
+``` {r first_collection_date}
 
+first_collection_date <- 
+  min(vt_rsv_seasonal$date)
+
+```
+
+``` {r plot_seasonal_peaks}
+vt_rsv_seasonal
 # Graph offset between seasons
 seasonal_offset <- 
   ggplot(
-    data = vt_rsv_seasonal |> filter(site %in% c(1965, 1966, 1975))
+    data = vt_rsv_seasonal |> filter(site %in% c(1965, 1966, 1975),
+                                     season != "Off-Season")
   ) +
   geom_line(
     mapping = aes(
@@ -422,6 +436,7 @@ seasonal_offset <-
     )
   ) +
   scale_y_continuous(labels = scales::comma) +
+  scale_color_discrete(labels = c("2022-23", "2023-24", "2024-25", "2025-26")) +
   theme_minimal() +
   facet_wrap(
     facets = vars(facet_label),
@@ -441,11 +456,11 @@ seasonal_offset <-
     strip.text = element_text(size = font_sizes["facet_title"])
   )
 
-
 # Seasonal data by days since start of season
 seasonal_peaks <- 
   ggplot(
-  data = vt_rsv_seasonal |> filter(site %in% c(1965, 1966, 1975))
+  data = vt_rsv_seasonal |> filter(site %in% c(1965, 1966, 1975),
+                                   season != "Off-Season")
 ) +
   geom_line(
     mapping = aes(
@@ -454,6 +469,7 @@ seasonal_peaks <-
       color = season
     )
   ) +
+  scale_color_discrete(labels = c("2022-23", "2023-24", "2024-25", "2025-26")) +
   scale_y_continuous(labels = scales::comma) +
   theme_minimal() +
   facet_wrap(
@@ -714,8 +730,7 @@ decomposed_1965 <-
     color = colors["1965"]
   ) +
   labs(
-    title = "STL Decomposition of RSV Wastewater Concentration",
-    subtitle = "Site 1965: Chittenden County, VT",
+    title = NULL,
     x = "Week",
     caption = "Source: CDC National Wastewater Surveillance System"
   ) +
@@ -786,7 +801,7 @@ STL decomposition identified long-term trend and seasonality were the dominant s
 
 Data was filtered and grouped by each relevant site. For each sample, four columns were added: the first collection date for the site; days elapsed since that date; the log-transformed rolling 7-day average; and the day of the year.
 
-GAM models were fit using the mgcv^16^ package. The predictors---days elapsed and day of the year---were both fit as a smoothed curve to explain the weekly mean log RSV concentration. "Days elapsed" was based in a thin plate regression spline, which determines knot locations based on the data. "Day of the year" was based in a cyclic cubic spline to account for seasonal trends. REML smoothing parameter estimation was used to reduce the likelihood of oversmoothing the data.
+GAM models were fit to a Gaussian distribution using the mgcv^16^ package. The predictors---days elapsed and day of the year---were both fit as a smoothed curve to explain the weekly mean log RSV concentration. "Days elapsed" was based in a thin plate regression spline, which determines knot locations based on the data. "Day of the year" was based in a cyclic cubic spline to account for seasonal trends. REML smoothing parameter estimation was used to reduce the likelihood of oversmoothing the data.
 
 The significance of each smooth term was assessed using approximate p-values from the model summary.
 
@@ -843,6 +858,40 @@ gam_1975 <- gam(
 
 ```
 
+``` {r gam_summary_table}
+
+gam_table <- 
+  data.frame(
+    site = c(1965, 1966, 1975),
+    
+    s_days_elapsed_p = c(format.pval(summary(gam_1965)$s.pv[1], digits = 3, eps = 0.001),
+                         format.pval(summary(gam_1966)$s.pv[1], digits = 3, eps = 0.001),
+                         format.pval(summary(gam_1975)$s.pv[1], digits = 3, eps = 0.001)),
+
+    s_day_of_year_p = c(format.pval(summary(gam_1965)$s.pv[2], digits = 3, eps = 0.001),
+                        format.pval(summary(gam_1966)$s.pv[2], digits = 3, eps = 0.001),
+                        format.pval(summary(gam_1975)$s.pv[2], digits = 3, eps = 0.001)),
+    
+    dev_expl = c(summary(gam_1965)$dev.expl,
+                 summary(gam_1966)$dev.expl,
+                 summary(gam_1975)$dev.expl),
+    
+    edf_days_elapsed = c(round(summary(gam_1965)$edf[1], digits = 2),
+                         round(summary(gam_1966)$edf[1], digits = 2),
+                         round(summary(gam_1975)$edf[1], digits = 2)),
+    
+    edf_day_of_year = c(round(summary(gam_1965)$edf[2], digits = 2),
+                        round(summary(gam_1966)$edf[2], digits = 2),
+                        round(summary(gam_1975)$edf[2], digits = 2))
+  ) |> 
+  mutate(
+    across(-c(site, s_days_elapsed_p, s_day_of_year_p), ~ round(., digits = 2)),
+    
+    dev_expl = scales::label_percent(accuracy = 0.1)(dev_expl)
+    )
+
+```
+
 ``` {r gam_graphs, include=FALSE}
 
 gam_graphed_1965 <- 
@@ -860,10 +909,7 @@ gam_graphed_1965 <-
         title = "'Day of Year' Component",
         x = "Day of Year",
         y = NULL)
-    ) +
-  plot_annotation(
-    title = "GAM Smoothed Components for Site 1965"
-  )
+    )
 
 gam_graphed_1966 <- 
   wrap_plots(
@@ -904,6 +950,41 @@ gam_graphed_1975 <-
   plot_annotation(
     title = "GAM Smoothed Components for Site 1975"
   )
+
+```
+
+``` {r gam_analysis_nums}
+
+# Get the onset and offset dates for the residual patterns in the GAM graph for site 1965
+gam_off_season_onset_dates <- 
+  c(site_1965_for_gam$date[1] + days(50),
+    site_1965_for_gam$date[1] + days(400),
+    site_1965_for_gam$date[1] + days(825))
+gam_off_season_offset_dates <- 
+  c(site_1965_for_gam$date[1] + days(225),
+    site_1965_for_gam$date[1] + days(630),
+    site_1965_for_gam$date[1] + days(1000))
+
+# Get the peak dates for the residual patterns for the same graph
+gam_off_season_peak_dates <- 
+  c(site_1965_for_gam$date[1] + days(150),
+    site_1965_for_gam$date[1] + days(500),
+    site_1965_for_gam$date[1] + days(870))
+
+# Set the year for averaging
+year(gam_off_season_onset_dates) <- 2025
+year(gam_off_season_offset_dates) <- 2025
+year(gam_off_season_peak_dates) <- 2025
+
+# Take the mean
+gam_mean_off_season_onset <- mean(gam_off_season_onset_dates)
+gam_mean_off_season_offset <- mean(gam_off_season_offset_dates)
+gam_mean_off_season_peak <- mean(gam_off_season_peak_dates)
+
+# Format the date
+gam_mean_off_season_onset <- format(gam_mean_off_season_onset, "%B %d")
+gam_mean_off_season_offset <- format(gam_mean_off_season_offset, "%B %d")
+gam_mean_off_season_peak <- format(gam_mean_off_season_peak, "%B %d")
 
 ```
 
@@ -1036,8 +1117,8 @@ onset_offset |>
     across(-season, ~ str_replace_all(., "_", "-"))
   ) |> 
   
-  kable(caption = "<b>Table 4.</b> Average season onset and offset each year",
-        col.names = c("Season", "Average Onset", "Average Offset")) |> 
+  kable(caption = "<b>Table 4.</b> Average season onset and offset each year.",
+        col.names = c("Season", "Average onset", "Average offset")) |> 
   
   kable_styling(position = "center")
 
@@ -1045,70 +1126,77 @@ onset_offset |>
 
 The 2022-23 season did not have enough data to attribute an onset date. The 2023-24 and 2024-25 seasons both began in mid to late December and ended in mid to late April. The 2022-23 season also offset in mid to late April, which may suggest greater data coverage would indicate season onset was similar to the following two seasons. The 2025-26 season began 2-3 weeks later in mid-January and was still ongoing as of May 19, 2026.
 
-## Peak analysis 
+## Peak Analysis 
 
-``` {r visualize_seasonal_offset, fig.topcaption = TRUE, fig.caption = "**Figure 5**. RSV wastewater concentrations in Vermont by day since the start of the on-season; Vermont, 2023-26"}
-
-seasonal_offset
-
-```
-
-- the method used for cutoffs made some sites arbitrary
-
-Generally, seasons occurring earlier in the data collection periods exhibit earlier season onset and peak earlier. The 2023-24 season rises and peaks early across all sites before the 2024-25 and 2025-26 seasons rise. Peaks in the latter seasons appear to be between 30-50 days later than peaks in the 2023-2024 season. 
-
-``` {r visualize_seasonal_peaks}
+``` {r visualize_seasonal_offset, fig.topcaption = TRUE, fig.cap = "**Figure 5**. RSV wastewater concentrations in Vermont by day since the start of the on-season; Vermont, 2023-26"}
 
 seasonal_peaks
 
 ```
 
-The noted sites all showed high spikes in RSV concentration during mid-late season 2023-2024. RSV concentrations seem to be highest overall in the 2023-24 season in Chittenden county, while the 2025-26 season concentrations were the highest in Washington county.
+Sites 1965, 1966, 1975 all showed high spikes in RSV concentration during mid-late season 2023-2024. RSV concentrations were highest overall in the 2023-24 season in Chittenden county, while the 2025-26 season concentrations were the highest in Washington county.
+
+``` {r visualize_seasonal_peaks, fig.topcaption = TRUE, fig.cap = "**Figure 6**. RSV wastewater concentrations in Vermont by day since June 1st of the previous off-season; Vermont, 2023-26", out.width = "600px"}
+
+seasonal_offset
+
+```
+
+Generally, seasons occurring earlier in the data collection periods exhibit earlier season onset and peak earlier. The 2023-24 season rises and peaks early across all sites before the 2024-25 and 2025-26 seasons rise. Peaks in the latter seasons appear to be between 30-50 days later than peaks in the 2023-24 season. 
 
 ## Seasonal Decomposition
 
-``` {r show_seasonal_decomposition}
+``` {r show_seasonal_decomposition, fig.topcaption = TRUE, fig.cap = "**Figure 7**. STL decomposition of log weekly RSV wastewater concentration over the observation period at NWSS site 1965; Chittenden County, Vermont, 2023-26"}
 
 decomposed_1965
   
 ```
 
-For sites 1965, 1966, and 1975 over the last three years, seasonal peaks occur on averange on `r peak_as_month_date(decomp_peaks_1965)`, `r peak_as_month_date(decomp_peaks_1966)`, and `r peak_as_month_date(decomp_peaks_1975)` respectively.
+Seasonal decomposition showed seasonal peaks occur on average on `r peak_as_month_date(decomp_peaks_1965)`, `r peak_as_month_date(decomp_peaks_1966)`, and `r peak_as_month_date(decomp_peaks_1975)` for sites 1965, 1966, and 1975 respectively.
 
-Site 1965 shows a dip in the overall trend of the data during summer 2024. From there the trend continues to increase steadily throughout 2025 and early 2026, where it is currently highest. Site 1966 rises steadily peaks during the 2023-2024 respiratory virus season and has steadily decreased since. Site 1975 also exhibits a dip in the data during the summer of 2024 before peaking again during respiratory virus season 2024-2025 and has steadily declined since then. All sites showed a clear seasonal cycle with a fluctuating long term trend.
+Site 1965 showed a dip in the overall trend of the data during summer 2024. From there the trend continues to increase steadily throughout 2025 and early 2026, where it is currently highest (Figure 7).
 
-Observing seasonal decomposition, we can see after separating the data for site 1965 into the trend, seasonal, and remainder components that the overall trend is increasing for the 2026 season. For site 1966, since early 2024 the overall trend has remained about constant. For site 1975, the trend dramatically decreases during the summer months and is still approaching its peak for the 2025-2026 season.
+Site 1966 peaked overall during the 2023-24 respiratory virus season and steadily decreased until the start of the 2025-26 season. The trend for site 1975 fluctuates slightly over time, but shows an increasing trend in the 2025-26 season (S1).
 
-``` {r show_gam, fig.align = "center"}
+All sites showed a clear seasonal cycle alongside a non-linear long-term trend.
 
-summary(gam_1965)
-summary(gam_1966)
-summary(gam_1975)
+
+
+``` {r}
+
+gam_table |> 
+  
+  kable(caption = "<b>Table 5.</b> GAM model summary statistics for sites 1965, 1966, and 1975. All smooth terms are significant at p < 0.001.",
+        col.names = c("Site", "Trend p-value", "Seasonality p-value", "Deviance explained", "EDF for trend", "EDF for seasonality"))
+
+```
+
+
+
+GAM identified statistically significant long-term trends and seasonal smooth terms at sites 1965, 1975, and 1976 (all p < 2e-16, or p $\approx$ `r mean(c(summary(gam_1965)$s.pv, summary(gam_1966)$s.pv, summary(gam_1975)$s.pv))`), with average degrees of freedom of `r round(mean(c(summary(gam_1965)$edf[1], summary(gam_1966)$edf[1], summary(gam_1975)$edf[1])), digits = 2)` and `r round(mean(c(summary(gam_1965)$edf[2], summary(gam_1966)$edf[2], summary(gam_1975)$edf[2])), digits = 2)` for trend and seasonality, respectively. Site 1975 had the highest deviance explained, followed by 1966, and 1965.
+
+``` {r gam_graphed, fig.topcaption = TRUE, fig.cap = "**Figure 8**. Generalized additive model (GAM) smoothed components for RSV wastewater concentration over the observation period at NWSS site 1965; Chittenden County, Vermont, 2023-26"}
 
 gam_graphed_1965
 
 ```
-The general additive model sums a smoothing spline of days elapsed since March 3, 2023 to a smoothing cyclic cubic spline of the day of the year. For all three sites, data was consistent.
 
-The long-term trend component (days elapsed) shows peaks corresponding to the 2023-2024 and 2024-2025 winter seasons with dips during the summer seasons. The rise towards the right edge of the graph represents the current 2025-2026 season. Towards the edge of the graph the confidence interval widens significantly.
+The partial effect of the 'days elapsed' component for site 1965's GAM shows a trend with relative peaks around `r format(site_1965_for_gam$date[1] + days(230), "%B %d, %Y")` and `r format(site_1965_for_gam$date[1] + days(760), "%B %d, %Y")`. In the 2025-26 season, the data increases towards an absolute maximum as of May 19, 2026.
 
-The seasonal component shows a peak in RSV concentrations within the first fifty days of the year, with a sharp decrease that bottoms out around mid-July. Concentrations begin to rise again gradually, before sharply increasing beginning in late October.
+The seasonal component shows a peak in RSV concentrations within the first fifty days of the year, with a sharp decrease that reaches a minimum around mid-July. Concentrations begin to rise again gradually, before sharply increasing beginning in late October.
 
-For all sets of graphs, confidence intervals tend to widen during the summer months.
+During off-season periods, residual plotting revealed patterns of large negative residuals indicating model overprediction of near-zero values. These periods were also accompanied by wider confidence intervals, corroborating the model's limitations in predicting near-zero concentrations. During on-season periods, concentration spikes occasionally exceeded the model's prediction.
+
+Similar patterns in trend were observed for sites 1966 and 1975 (Figure S2).
 
 # Limitations
 
-A few of the sites used for analysis had gaps in data. Site 1967 only has data for the present 25-26 season, while sites 1976 and 2350 have data for the 25-26 season and the 24-25 season. Site 1976 also has artifacts from the 23-24 season. For this reason, only the three sites with at least three full years of data (1965, 1966, and 1975) were seasonally decomposed and tested using GAM.
+The CDC advised against comparison of RSV concentrations across sites due to differences in collection methods, collection frequencies, and laboratory testing methods^12^. Exploratory analysis found that sites 1976, 2350, and 1967 had large gaps in data that affected seasonal classification using the method defined in Boehm et al.^13,14,15^ These sites were not analyzed further using STL decomposition and GAM due to low coverage. The 2022-23 season was also excluded due to low coverage. The first date on record for any site was `r format(first_collection_date, "%B %d, %Y")`---3 months into a usual season, which undermined the validity of onset date for the 2022-23 season.
 
-A known limitation of the data according to collection methods are that different sampling locations may be collected at different frequencies and different laboratory methods. As such, it was not advised to compare wastewater concentrations across sites. Therefore we will only compare relative trends across sites.
+In both component graphs of the GAM, large negative residuals in the off-season (around `r gam_mean_off_season_onset` to `r gam_mean_off_season_offset`) reflect systematic overprediction of near-zero values by the model---this is a known limitation of Gaussian family distributions in epidemic modeling^A^. Towards the beginning and end of each off-season the magnitude of the model's overprediction is greatest since it expects a continuous distribution. Future analyses may benefit from zero-inflated or hurdle model frameworks^A^, which are frequently used in epidemic analysis pipelines due to their ability to account for excess zeros in the data.
 
-2022-2023 season sucks
-some sites don't report all the data
-no hospitalizations 
-data only covers 4 years maximum which really isn't enough
-why was the days elapsed since day chosen
-why was june 1st chosen as since off szn
-rsv not nationally tested
+Clinical data for RSV hospitalizations were not available for Vermont, precluding validation of wastewater trends against clinical outcomes. Wastewater viral concentrations and clinical outcomes have been correlated in previous studies^D1,D3^; hospitalization data could cross-validate these findings and strengthen interpretation of wastewater trends as indicators of community disease burden.
+
 
 # Discussion
 
@@ -1184,6 +1272,9 @@ decomposed_1966 +
     caption = "Source: CDC National Wastewater Surveillance System"
   )
 
+summary(gam_1966)
+summary(gam_1975)
+
 gam_graphed_1966
 gam_graphed_1975
 
@@ -1248,6 +1339,7 @@ https://otexts.com/fpp3/components.html
 
 15. 
 
+A. Lu J, Meyer S. A zero-inflated endemic-epidemic model with an application to measles time series in Germany. Biom J. 2023;65(8):e2100408. DOI: https://doi.org/10.1002/bimj.202100408.
 
 
 
