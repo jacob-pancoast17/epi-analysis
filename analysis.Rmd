@@ -70,24 +70,24 @@ body {
 ``` 
 
 <div style ="background-color: #d6d6d6; padding: 10px;">
-# Summary
+# Abstract
 
-### What is already known about this topic?
+In the United States, RSV seasonality has been disrupted following the COVID-19 pandemic. Understanding changes trends may require new analysis methods in areas with gaps in clinical coverage. Wastewater-based epidemiology (WBE) is a cost-effective and rapid tool which can be used to analyze and assess the burden of diseases through wastewater collection. Based on historical trends, expert opinion, and scenario modeling, the CDC expected the 2025-26 RSV season to be no more severe than usual. As of late April, 2026, RSV-NET surveillance indicated RSV levels were high in Vermont. Due to low population, Vermont is a state that may be misrepresented by national predictions.
 
-In the United States, RSV seasonality has been disrupted following the COVID-19 pandemic. The 2025-26 RSV season was delayed but carried no more significant burden of disease. Temperate regions are subject to harsher, more condensed RSV seasons.
+In 2023, participating Vermont NWSS sites began monitoring RSV levels. Since 2023, 6 sites have data for at least 1 season. Data obtained from data.cdc.gov was used to compare trends across sites to infer the burden of RSV in Vermont this season.
 
-### What is added by this report?
+Only 3 of the 6 participating Vermont NWSS sites contained enough data for analysis ($\ge 3$ years). For every remaining site, each was found to have an increased trend in RSV for 2026 using STL decomposition and fitting a generalized additive model. Analyzing season onsets and offsets showed this season also started much later than usual, which may be due to climate change or variation in viral shedding from who was infected and how they were infected.
 
-Vermont has low population density and high risk for harsh RSV seasons. Vermont contributes minimally to national averages, and may be overlooked in national assessments of RSV burden. The 2025-26 season
+A large percentage of RSV burden is made up of young children and infants, who receive nirsevimab treatment at the beginning of the respiratory virus season. The delayed and prolonged RSV season in Vermont this year may reflect expiring immunity. Vermont's wastewater data should be compared against clinical data to investigate correlations between the two, which may provide more insight into infection demographics . Better understanding how RSV concentrations in wastewater represent the burden of disease in a community should influence public health decision making and vaccine schedule recommendations. 
 </div>
 
 # Introduction
 
 ## Respiratory Syncytial Virus (RSV)
 
-Respiratory syncytial virus (RSV) is an RNA virus belonging to the *Pneumoviridae* family of viruses. RSV infection is most often accompanied by difficulty breathing, coughing, sneezing, congestion, and decreased appetite. RSV can lead to more severe illnesses including [bronchiolitis](https://www.mayoclinic.org/diseases-conditions/bronchiolitis/symptoms-causes/syc-20351565) and [pneumonia](https://www.mayoclinic.org/diseases-conditions/pneumonia/symptoms-causes/syc-20354204), more commonly in high-risk groups such as infants, young children, and older adults^1^. In the United States, RSV activity peaks during respiratory virus season. Typically, cases increase in the fall, peak around December or January, and decrease into the spring^1,2^.
+Respiratory syncytial virus (RSV) is an RNA virus belonging to the *Pneumoviridae* family of viruses. RSV infection is most often accompanied by difficulty breathing, coughing, sneezing, congestion, and decreased appetite, but may lead to more severe illnesses including [bronchiolitis](https://www.mayoclinic.org/diseases-conditions/bronchiolitis/symptoms-causes/syc-20351565) and [pneumonia](https://www.mayoclinic.org/diseases-conditions/pneumonia/symptoms-causes/syc-20354204) in high-risk groups including infants, young children, and older adults^1^. In the United States, RSV activity peaks during respiratory virus season. Typically, cases increase in the fall, peak around December or January, and decrease into the spring^1,2^.
 
-Clinically, RSV presents similarly to the common cold, influenza, and COVID-19. As a result, RSV infection is frequently misdiagnosed, especially in high risk populations^3^. Worldwide, RSV is a leading cause of acute lower respiratory infections among both children and elderly. In the United States alone, RSV was estimated to cause between 60,000 and 160,000 hospitalizations as well as 6,000-10,000 deaths annually among adults aged 65 and over in 2023^4^.
+Clinically, RSV presents similarly to the common cold, influenza, and COVID-19. As a result, RSV infection is frequently misdiagnosed, especially in high risk populations^3^. Worldwide, RSV is a leading cause of acute lower respiratory infections among both children and elderly. In the United States alone, RSV was estimated to cause between 60,000-160,000 hospitalizations as well as 6,000-10,000 deaths annually among adults aged 65 and over in 2023^4^.
 
 ``` {r flu_burden, fig.topcaption = TRUE, fig.cap = "**Figure 1.** Estimated ranges of annual flu and RSV burdens. Figure 1A was obtained from the CDC and shows flu burden from 2010-25^5^. Figure 1B was created using data from a CDC MMWR report on RSV from 2023 estimating the annual burden."}
 
@@ -124,11 +124,13 @@ The general hospitalization rate for RSV may be between 2 - 4.4 times lower than
 
 ## RSV Monitoring Systems
 
-The RSV-Hospitalization Surveillance Network (RSV-NET) is a CDC-led program that monitors laboratory-confirmed RSV hospitalizations to estimate disease burden and identify trends in virus circulation^7^. Established in 2018, this program serves 14 states (found [here](https://www.cdc.gov/resp-net/dashboard/)) and over 170 counties. The National Respiratory and Eneteric Virus Surveillance System (NREVSS) measures weekly positive RSV tests since 1989 through voluntarily participating labs. In low-population states, including Vermont, RSV monitoring suffers from undercoverage and the lack of a nationwide surveillance system. Most states are not involved in RSV-NET and have few NREVSS labs.
+The RSV-Hospitalization Surveillance Network (RSV-NET) is a CDC-led program that monitors laboratory-confirmed RSV hospitalizations to estimate disease burden and identify trends in virus circulation^7^. Established in 2018, this program serves 14 states (found [here](https://www.cdc.gov/resp-net/dashboard/)) and over 170 counties. Most states do not yet participating in RSV-NET, which limits centralized monitoring.
 
-However, gaps in clinical surveillance may be supplemented by wastewater surveillance. The CDC collects wastewater data reported by state and local health departments through the National Wastewater Surveillance System (NWSS)^8^.
+Most states have labs participating in the National Respiratory and Eneteric Virus Surveillance System (NREVSS), which measure weekly positive RSV tests. Low-population states such as Vermont are undercovered due to the presence of fewer NREVSS labs.
 
-Wastewater based epidemiology (WBE) is an important tool in assessing respiratory viral disease burden ^2,9-11^ that has gained traction as an epidemiological method since the COVID-19 pandemic^12^ despite being in practice for over 80 years^13^. While clinical surveillance remains valuable in populations with high access to testing^14^, WBE offers advantages in that it is not subject to the same delays and constraints as clinical testing ^2,9,11^; it is also less invasive, cost effective^11^, and may be generalizable to neighboring communities^2^. Without the reliance on testing access, WBE may better indicate viral disease burden ^2,9,10^ in lower-income communities while also accounting for asymptomatic individuals, which may represent around 17% of cases^15^.
+Gaps in clinical surveillance may be supplemented by wastewater surveillance. The CDC collects wastewater data reported by state and local health departments through the National Wastewater Surveillance System (NWSS)^8^.
+
+Wastewater based epidemiology (WBE) is an important tool in assessing respiratory viral disease burden ^2,9-11^ that has gained traction as an epidemiological method since the COVID-19 pandemic^12^ despite being in practice for over 80 years^13^. While clinical surveillance remains valuable in populations with high access to testing^14^, WBE offers advantages in that it is not subject to the same delays and constraints as clinical testing ^2,9,11^; it is also less invasive, cost effective^11^, and may be generalizable to neighboring communities^2^. Without the reliance on testing access, WBE may better indicate viral disease burden ^2,9,10^ in lower-income communities while also accounting for asymptomatic individuals, which may represent around 17% of overall cases^15^.
 
 As of 2022, RSV testing was generally not recommended for children in Vermont since it does not significantly alter treatment outcomes^16^. Because publicly available RSV testing and hospitalization data are scarce for Vermont, WBE is a critical tool in understanding RSV epidemiology in the state. 
 
@@ -270,7 +272,7 @@ names(colors) <-
 
 ### Site Comparison
 
-Each sample was classified by season (starting in the second half of one year, through the first half of the following year). Respiratory virus season usually lasts October through May, but a broader range was used to observe any changes in seasonality for the 2025-26 season. Without benchmark clinical indicators to define seasonality ^14,22^, season onset and offset were defined using the methodology for WBE outlined in Boehm et. al ^2,23,24^. For each individual site, season onset was defined as the first day in the second half of the year where 100% of samples collected in a 14 day look back period had an RSV concentration equal to or above 2 times the limit of detection for that site. Season offset was defined as the first day following a season onset date where 50% or less of the samples collected in a 14 day lookback had concentrations above or equal to 2 times the limit of detection for that site. This method was originally described for sites that measure viral concentration in copies per dry gram of sludge. For this analysis, this definition was extended to sites measuring copies per liter of wastewater. This was a feasible extrapolation since the threshold proportion was preserved by using the individual limit of detection for each site.
+Each sample was classified by season (starting in the second half of one year, through the first half of the following year). Respiratory virus season usually lasts October through May, but a broader range was used to observe any changes in seasonality for the 2025-26 season. Without benchmark clinical indicators to define seasonality^14,22^, season onset and offset were defined using the methodology for WBE outlined in Boehm et. al^2,9,23^. For each individual site, season onset was defined as the first day in the second half of the year where 100% of samples collected in a 14 day look back period had an RSV concentration equal to or above 2 times the limit of detection for that site. Season offset was defined as the first day following a season onset date where 50% or less of the samples collected in a 14 day lookback had concentrations above or equal to 2 times the limit of detection for that site. This method was originally described for sites that measure viral concentration in copies per dry gram of sludge. For this analysis, this definition was extended to sites measuring copies per liter of wastewater. This was a feasible extrapolation since the threshold proportion was preserved by using the individual limit of detection for each site.
 
 From this data, tables were constructed to compare season lengths, peak days, peak years for each site, and season onsets and offsets.
 
@@ -530,7 +532,9 @@ peak_days <-
         ), 
       "%m-%d"
       )
-    )
+    ) |> 
+  
+  arrange(site)
 
   # Compare peak year for each site
 peak_year <- 
@@ -541,7 +545,9 @@ peak_year <-
   summarise(
     year = season[which.max(mean_7day)],
     .by = c(site)
-  )
+  ) |> 
+  
+  arrange(site)
 
 # Mean season lengths across sites
 szn_lengths <- 
@@ -611,7 +617,9 @@ szn_lengths <-
     
     across(-site, ~ round(as.numeric(.), digits = 2))
     
-  )
+  ) |> 
+  
+  arrange(site)
 
 onset_offset <- 
   
@@ -624,7 +632,9 @@ onset_offset <-
   group_by(season) |> 
   
   summarise(average_onset = mean(onset, na.rm = TRUE),
-            average_offset = mean(offset, na.rm = TRUE))
+            average_offset = mean(offset, na.rm = TRUE)) |> 
+  
+  arrange(season)
 
 ```
 
@@ -661,11 +671,11 @@ seasonal_decomposition <- function(the_site) {
 
 For all further analysis, only the three sites containing consistent data spanning *$n \ge 3$* years were used (sites 1965, 1966, and 1975) due to inadequate coverage in the remaining sites.
 
-Seasonal-Trend decomposition using Loess (STL) decomposes a time series ($y_t$) into trend-cycle ($T_t$), seasonal ($S_t$), and remainder ($R_t$) components such that $y_t$ = $T_t$ + $S_t$ + $R_t$. Classical decomposition may also be multiplicative, however STL only supports additive decomposition. Using this method, graphs of each component per site were created to compare trends across sites.
+Seasonal-Trend decomposition using Loess (STL) decomposes a time series ($y_t$) into trend-cycle ($T_t$), seasonal ($S_t$), and remainder ($R_t$) components such that $y_t$ = $T_t$ + $S_t$ + $R_t$. Classical decomposition may also be multiplicative, however STL only supports additive decomposition. While proportional variation in the magnitude of seasonal fluctuations over the time series suggested a multiplicative decomposition, concentrations were log transformed to convert the multiplicative structure to additive, while also normalizing the right skew in the data.
 
-For this data, a multiplicative decomposition was more appropriate due to proportional variation in the magnitude of seasonal fluctuations over the time series. Since STL only supports an additive decomposition, concentrations were log transformed to convert the multiplicative structure to additive, while also normalizing the right skew in the data.
+Concentrations were then grouped by week and averaged to create the regular weekly intervals required for decomposition. Data gaps in site 1966 were filled with *concentration = 0* for the weeks of April 21, 2024; April 28, 2024; and May 5; 2024. After decomposition, graphs of each component per site were created to compare trends across sites.
 
-Concentrations were then grouped by week and averaged to create the regular weekly intervals required for decomposition. Data gaps in site 1966 were filled with *concentration = 0* for the weeks of April 21, 2024; April 28, 2024; and May 5; 2024. 
+
 
 ``` {r seasonal_decomposition, include=FALSE}
 
@@ -800,7 +810,7 @@ STL decomposition identified that long-term trend and seasonality were the domin
 
 Data was filtered and grouped by each relevant site. For each sample, four columns were added: the first collection date for the site; days elapsed since that date; the log-transformed rolling 7-day average; and the day of the year.
 
-GAM models were fit to a Gaussian distribution using the mgcv^25^ package. The predictors---days elapsed and day of the year---were both fit as a smoothed curve to explain the weekly mean log RSV concentration. "Days elapsed" was based in a thin plate regression spline, which determines knot locations based on the data. "Day of the year" was based in a cyclic cubic spline to account for seasonal trends. REML smoothing parameter estimation was used to reduce the likelihood of oversmoothing the data.
+GAM models were fit to a Gaussian distribution using the mgcv^24^ package. The predictors---days elapsed and day of the year---were both fit as a smoothed curve to explain the weekly mean log RSV concentration. "Days elapsed" was based in a thin plate regression spline, which determines knot locations based on the data. "Day of the year" was based in a cyclic cubic spline to account for seasonal trends. REML smoothing parameter estimation was used to reduce the likelihood of oversmoothing the data.
 
 The significance of each smooth term was assessed using approximate p-values from the model summary.
 
@@ -1147,7 +1157,7 @@ decomposed_1965
   
 ```
 
-Seasonal decomposition showed seasonal peaks occur on average on `r peak_as_month_date(decomp_peaks_1965)`, `r peak_as_month_date(decomp_peaks_1966)`, and `r peak_as_month_date(decomp_peaks_1975)` for sites 1965, 1966, and 1975 respectively. Site 1965 showed a dip in the overall trend of the data during summer 2024. From there the trend continues to increase steadily throughout 2025 and early 2026, where it is currently highest (Figure 7). Site 1966 peaked overall during the 2023-24 respiratory virus season and steadily decreased until the start of the 2025-26 season. The trend for site 1975 fluctuates slightly over time, but shows an increasing trend in the 2025-26 season (S1). All sites showed a clear seasonal cycle alongside a non-linear long-term trend.
+Seasonal decomposition showed seasonal peaks occur on average on `r peak_as_month_date(decomp_peaks_1965)`, `r peak_as_month_date(decomp_peaks_1966)`, and `r peak_as_month_date(decomp_peaks_1975)` for sites 1965, 1966, and 1975 respectively. Site 1965 showed a dip in the overall trend of the data during summer 2024. From there the trend continues to increase steadily throughout 2025 and early 2026, where it is currently highest (Figure 7). Site 1966 peaked overall during the 2023-24 respiratory virus season and steadily decreased until the start of the 2025-26 season. The trend for site 1975 fluctuates slightly over time, but shows an increasing trend in the 2025-26 season (Figure S1). All sites showed a clear seasonal cycle alongside a non-linear long-term trend.
 
 ``` {r}
 
@@ -1172,9 +1182,9 @@ During off-season periods, residual plotting revealed patterns of large negative
 
 # Limitations
 
-The CDC advised against comparison of RSV concentrations across sites due to differences in collection methods, collection frequencies, and laboratory testing methods^13^. Exploratory analysis found that sites 1967, 1976, and 2350 had large gaps in data that affected seasonal classification using the method defined in Boehm et al.^2,23,24^ These sites were not analyzed further using STL decomposition and GAM due to low coverage. The 2022-23 season was also excluded due to low coverage. The first date on record for any site was `r format(first_collection_date, "%B %d, %Y")`---3 months into a typical season, which undermined the validity of onset date for the 2022-23 season.
+The CDC advised against comparison of RSV concentrations across sites due to differences in collection methods, collection frequencies, and laboratory testing methods^13^. Exploratory analysis found that sites 1967, 1976, and 2350 had large gaps in data that affected seasonal classification using the method defined in Boehm et al.^2,9,23^ These sites were not analyzed further using STL decomposition and GAM due to low coverage. The 2022-23 season was also excluded due to low coverage. The first date on record for any site was `r format(first_collection_date, "%B %d, %Y")`---3 months into a typical season, which undermined the validity of onset date for the 2022-23 season.
 
-In both component graphs of the GAM, large negative residuals in the off-season (around `r gam_mean_off_season_onset` to `r gam_mean_off_season_offset`) reflect systematic overprediction of near-zero values by the model---this is a known limitation of Gaussian family distributions in epidemic modeling^26^. Towards the beginning and end of each off-season the magnitude of the model's overprediction is greatest since it expects a continuous distribution. Future analyses may benefit from zero-inflated or hurdle model frameworks^26^, which are frequently used in epidemic analysis pipelines due to their ability to account for excess zeros in the data.
+In both component graphs of the GAM, large negative residuals in the off-season (around `r gam_mean_off_season_onset` to `r gam_mean_off_season_offset`) reflect systematic overprediction of near-zero values by the model---this is a known limitation of Gaussian family distributions in epidemic modeling^25^. Towards the beginning and end of each off-season, the magnitude of the model's overprediction is greatest since it expects a continuous distribution. Future analyses may benefit from zero-inflated or hurdle model frameworks^25^, which are frequently used in epidemic analysis pipelines due to their ability to account for excess zeros in the data.
 
 Clinical data for RSV hospitalizations were not available for Vermont, precluding validation of wastewater trends against clinical outcomes. Wastewater viral concentrations and clinical outcomes have been correlated in previous studies^9,11^; hospitalization data could cross-validate these findings and strengthen interpretation of wastewater trends as indicators of community disease burden.
 
@@ -1184,27 +1194,27 @@ For the 2025-26 season, the CDC indicated that the national RSV burden was not l
 
 Excluding low-coverage sites 1967, 1976, and 2350, only site 1975 showed (Figure 5) an absolute peak for the 2025-26 season (Table 3). Interestingly, while seasonal decomposition showed only site 1965 had an increasing trend in the 2025-26 season (Figure 7, S1), GAM showed sites 1965, 1966, and 1975 all climbed towards absolute maxima in the 'days elapsed' component (Figure 8, S2, S3), indicating higher RSV wastewater concentrations in the 2025-26 season. The smoothing splines approach in GAM better detected trends that LOESS local smoothing underweighted.
 
-While RSV wastewater concentrations in the 2025-26 season were elevated relative to prior years, this cannot be interpreted as increased disease burden without considering viral shedding dynamics. Wastewater viral concentrations reflect the volume shed by individuals in a community ^9,10,27^, which has been found to vary by age, symptom severity, and infection status ^28,29^. Wastewater concentrations may have been higher this season due to variation in viral shedding based on who was infected and the conditions under which transmission occurred.
+While RSV wastewater concentrations in the 2025-26 season were elevated relative to prior years, this cannot be interpreted as increased disease burden without considering viral shedding dynamics. Wastewater viral concentrations reflect the volume shed by individuals in a community ^9,10,26^, which has been found to vary by age, symptom severity, and infection status ^27,28^. Wastewater concentrations may have been higher this season due to variation in viral shedding based on who was infected and the conditions under which transmission occurred.
 
-RSV season begins in fall and peaks in December or January ^1,2^, lasting 3-5 months on average in temperate regions ^30,31^ such as Vermont. Vermont's WBE data indicated seasons lasted `r round(szn_lengths[8,7]$avg_szn_length_per_site_excl_22_23 / 30, digits = 2)` months on average from 2023-26 (Table 1), began in mid-late December, ended in mid-late April (Table 4), and peaked in January or February (Table 2). The 2025-26 season strayed from these trends; it began later, peaked in late February to early April, and was still ongoing as of May 19, 2026 (Figure 7-8, S1-S3). Discrepancies in season duration have been found to be important in inferring the burden of disease and allocating resources in a community^2^.
+RSV season begins in fall and peaks in December or January ^1,2^, lasting 3-5 months on average in temperate regions ^29,30^ such as Vermont. Vermont's WBE data indicated seasons lasted `r round(szn_lengths[8,7]$avg_szn_length_per_site_excl_22_23 / 30, digits = 2)` months on average from 2023-26 (Table 1), began in mid-late December, ended in mid-late April (Table 4), and peaked in January or February (Table 2). The 2025-26 season strayed from these trends; it began later, peaked in late February to early April, and was still ongoing as of May 19, 2026 (Figure 7-8, S1-S3). Discrepancies in season duration have been found to be important in inferring the burden of disease and allocating resources in a community^2^.
 
-Recent winters have been unpredictable in onset and severity of conditions^32^. Notably, the 2025-26 winter had a delayed onset and was especially cold, which may influence the spread of RSV. Generally, inclement climates increase exposure by forcing people together inside ^30^. Dry, cold winters are known to encourage the stability and transmission of airborne viruses, including RSV, as water evaporates from respiratory particles, decreasing volume and increasing aerosolization^33,34,35,36^. RSV survives longer on fomites in these conditions, which are a primary source of infection^34,37^. In humans, cold air inhalation also limits metabolic functions that assist in clearing mucus and the activity of innate immune cells^33^.
+Recent winters have been unpredictable in onset and severity of conditions^31^. Notably, the 2025-26 winter had a delayed onset and was especially cold, which may influence the spread of RSV. Generally, inclement climates increase exposure by forcing people together inside ^29^. Dry, cold winters are known to encourage the stability and transmission of airborne viruses, including RSV, as water evaporates from respiratory particles, decreasing volume and increasing aerosolization^32,33,34,35^. RSV survives longer on fomites in these conditions, which are a primary source of infection^33,36^. In humans, cold air inhalation also limits metabolic functions that assist in clearing mucus and the activity of innate immune cells^32^.
 
-RSV transmission was reduced in 2020 following nationwide nonpharmaceutical COVID-19 interventions ^38,39^. These changes also disrupted subsequent seasons. In 2021-22, RSV season began earlier and lasted longer. In 2022-23, the season also began earlier ^39,40^. These recent temporal shifts may predict a return to pre-pandemic seasonality as population immunity and viral circulation adapt and reach a new equilibrium. A late winter could disrupt the change in this equilibrium, potentially contributing to Vermont's higher RSV wastewater concentrations in 2025-26.
+RSV transmission was reduced in 2020 following nationwide nonpharmaceutical COVID-19 interventions ^37,38^. These changes also disrupted subsequent seasons. In 2021-22, RSV season began earlier and lasted longer. In 2022-23, the season also began earlier ^22,38^. These recent temporal shifts may predict a return to pre-pandemic seasonality as population immunity and viral circulation adapt and reach a new equilibrium. A late winter could disrupt the change in this equilibrium, potentially contributing to Vermont's higher RSV wastewater concentrations in 2025-26.
 
-Viral shedding decreases with age^29^, however infants protected through vaccination or protective medicines such as nirsevimab have lower risks of infection and severity of symptoms; immunized infants shed less virus. Vaccination data in Vermont indicated infants made up significantly less of the vulnerable population and were more likely to be vaccinated for RSV than older adults^2^. 
+Viral shedding decreases with age^28^, however infants protected through vaccination or protective medicines such as nirsevimab have lower risks of infection and severity of symptoms; immunized infants shed less virus. Vaccination data in Vermont indicated infants made up significantly less of the vulnerable population and were more likely to be vaccinated for RSV than older adults^2^. 
 
-Nirsevimab is a monoclonal antibody that protects infants for around 5 months^41,42^. This medicine is most frequently administered to infants younger than 8 months, before their first RSV season — usually in October. Late peaks in the 2025-26 season often occurred in late February or later (Table 2, Figure 6). Considering infected infants shed more RSV than older adults, these late peaks would coincide with nirsevimab immunity expiring 5 months after initial dosing in October 2025.
+Nirsevimab is a monoclonal antibody that protects infants for around 5 months^39,40^. This medicine is most frequently administered to infants younger than 8 months, before their first RSV season — usually in October. Late peaks in the 2025-26 season often occurred in late February or later (Table 2, Figure 6). Considering infected infants shed more RSV than older adults, these late peaks would coincide with nirsevimab immunity expiring 5 months after initial dosing in October 2025.
 
-All PCR data collected from Vermont's NWSS sites was aggregated for RSV-A and RSV-B. RSV-A is known to have higher rates of shedding in infected individuals^26^. Further analysis could provide insight to geographic and temporal changes in the prevalence of each strain to determine if higher prevalence of RSV-A influenced increased wastewater concentrations.
+All PCR data collected from Vermont's NWSS sites was aggregated for RSV-A and RSV-B. RSV-A is known to have higher rates of shedding in infected individuals^25^. Further analysis could provide insight to geographic and temporal changes in the prevalence of each strain to determine if higher prevalence of RSV-A influenced increased wastewater concentrations.
 
 ## Implications for Public Health Practice
 
-Annual state guidelines could provide recommendations for the timing of seasonal nirsevimab doses for infants based on the start of the respiratory virus season. Providing the protective medicine in November or early December could provide better coverage during the RSV season (Table 2 and 4). This approach may be essential to help manage limited resources while maintaining infant immunity for as long as possible during relevant times. Dosing is only recommended once a season^43^, however, careful consideration of repeat dosing protocols for extended seasons may be warranted.
+Annual state guidelines could provide recommendations for the timing of seasonal nirsevimab doses for infants based on the start of the respiratory virus season. Providing the protective medicine in November or early December could provide better coverage during the RSV season (Table 2 and 4). This approach may be essential to help manage limited resources while maintaining infant immunity for as long as possible during relevant times. Dosing is only recommended once a season^41^, however, careful consideration of repeat dosing protocols for extended seasons may be warranted.
 
 As of May 2026, no national eligibility criteria exist for access to RSV testing^9^. This gap is exacerbated by existing barriers to healthcare for at-risk populations^9^. Centralized eligibility criteria based on age, symptoms, and risk-group may lower testing barriers for patients. Vermont may benefit from centralized criteria in-state to reduce barriers to timely diagnosis for providers and at-risk patients.
 
-Furthermore, access to hospitalization data would be critical to understand clinical implications of WBE. Prior studies have found correlation between WBE concentration peaks and hospitalization rates^9^, and that delayed wastewater peaks relative to hospitalization rates may reflect infected individuals not seeking care^10^. This is especially important to consider in rural communities, where Vermont residents have been found to have travel times up to 3.6 times longer to a healthcare facility^27^. Understanding the correlation between WBE and clinical outcomes may allow public health officials to better infer the burden of disease and allocate limited resources such as vaccines and tests^31^ while also identifying gaps in healthcare access for at-risk populations.
+Furthermore, access to hospitalization data would be critical to understand clinical implications of WBE. Prior studies have found correlation between WBE concentration peaks and hospitalization rates^9^, and that delayed wastewater peaks relative to hospitalization rates may reflect infected individuals not seeking care^10^. This is especially important to consider in rural communities, where Vermont residents have been found to have travel times up to 3.6 times longer to a healthcare facility^26^. Understanding the correlation between WBE and clinical outcomes may allow public health officials to better infer the burden of disease and allocate limited resources such as vaccines and tests^30^ while also identifying gaps in healthcare access for at-risk populations.
 
 Generalizability is a recognized strength of WBE^2^, however Vermont does not have enough participating NWSS sites to adequately monitor RSV burden across all of Vermont's rural counties. Increasing the number of participating NWSS sites in Vermont would allow better generalization to underrepresented rural communities that are far from current state NWSS sites. Implementation of strain-specific surveillance at each monitoring site would enable correlation analyses between RSV strain prevalence, wastewater concentrations, and disease burden.
 
@@ -1264,47 +1274,43 @@ https://doi.org/10.3389/fpubh.2023.1328452.
 
 22. Hamid S, Winn A, Parikh R, et al. Seasonality of Respiratory Syncytial Virus — United States, 2017–2023. MMWR Morb Mortal Wkly Rep 2023;72:355–361. DOI: http://dx.doi.org/10.15585/mmwr.mm7214a1.
 
-23. Zulli A, Varkila MRJ, Parsonnet J, Wolfe MK, Boehm AB. Observations of Respiratory Syncytial Virus (RSV) Nucleic Acids in Wastewater Solids Across the United States in the 2022-2023 Season: Relationships with RSV Infection Positivity and Hospitalization Rates. ACS ES T Water. 2024;4(4):1657-1667. Published 2024 Feb 29. DOI: https://doi.org/10.1021/acsestwater.3c00725.
+23. Boehm AB, Wolfe MK, White BJ, Hughes B, Duong D, Bidwell A. More than a Tripledemic: Influenza A Virus, Respiratory Syncytial Virus, SARS-CoV-2, and Human Metapneumovirus in Wastewater during Winter 2022-2023. Environ Sci Technol Lett. 2023;10(8):622-627. Published 2023 Jul 20. DOI: https://doi.org/10.1021/acs.estlett.3c00385.
 
-24. Boehm AB, Wolfe MK, White BJ, Hughes B, Duong D, Bidwell A. More than a Tripledemic: Influenza A Virus, Respiratory Syncytial Virus, SARS-CoV-2, and Human Metapneumovirus in Wastewater during Winter 2022-2023. Environ Sci Technol Lett. 2023;10(8):622-627. Published 2023 Jul 20. DOI: https://doi.org/10.1021/acs.estlett.3c00385.
+24. Wood SN. Fast stable restricted maximum likelihood and marginal likelihood estimation of semiparametric generalized linear models. J R Stat Soc Series B Stat Methodol. 2011;73(1):3-36. DOI: https://doi.org/10.1111/j.1467-9868.2010.00749.x.
 
-25. Wood SN. Fast stable restricted maximum likelihood and marginal likelihood estimation of semiparametric generalized linear models. J R Stat Soc Series B Stat Methodol. 2011;73(1):3-36. DOI: https://doi.org/10.1111/j.1467-9868.2010.00749.x.
+25. A. Lu J, Meyer S. A zero-inflated endemic-epidemic model with an application to measles time series in Germany. Biom J. 2023;65(8):e2100408. DOI: https://doi.org/10.1002/bimj.202100408.
 
-26. A. Lu J, Meyer S. A zero-inflated endemic-epidemic model with an application to measles time series in Germany. Biom J. 2023;65(8):e2100408. DOI: https://doi.org/10.1002/bimj.202100408.
+26. Lowry SA, Wolfe MK, Boehm AB. Respiratory virus concentrations in human excretions that contribute to wastewater: a systematic review and meta-analysis. J Water Health. 2023;21(6):831-848. DOI: https://doi.org/10.2166/wh.2023.057.
 
-27. Lowry SA, Wolfe MK, Boehm AB. Respiratory virus concentrations in human excretions that contribute to wastewater: a systematic review and meta-analysis. J Water Health. 2023;21(6):831-848. DOI: https://doi.org/10.2166/wh.2023.057.
+27. Otomaru H, Sornillo JBT, Kamigaki T, et al. Risk of Transmission and Viral Shedding From the Time of Infection for Respiratory Syncytial Virus in Households. Am J Epidemiol. 2021;190(12):2536-2543. DOI: https://doi.org/10.1093/aje/kwab181.
 
-28. Otomaru H, Sornillo JBT, Kamigaki T, et al. Risk of Transmission and Viral Shedding From the Time of Infection for Respiratory Syncytial Virus in Households. Am J Epidemiol. 2021;190(12):2536-2543. DOI: https://doi.org/10.1093/aje/kwab181.
+28. Munywoki PK, Koech DC, Agoti CN, et al. Influence of age, severity of infection, and co-infection on the duration of respiratory syncytial virus (RSV) shedding. Epidemiol Infect. 2015;143(4):804-812. DOI: https://doi.org/10.1017/S0950268814001393.
 
-29. Munywoki PK, Koech DC, Agoti CN, et al. Influence of age, severity of infection, and co-infection on the duration of respiratory syncytial virus (RSV) shedding. Epidemiol Infect. 2015;143(4):804-812. DOI: https://doi.org/10.1017/S0950268814001393.
+29. Janet S, Broad J, Snape MD. Respiratory syncytial virus seasonality and its implications on prevention strategies. Hum Vaccin Immunother. 2018;14(1):234-244. DOI: https://doi.org/10.1080/21645515.2017.1403707.
 
-30. Janet S, Broad J, Snape MD. Respiratory syncytial virus seasonality and its implications on prevention strategies. Hum Vaccin Immunother. 2018;14(1):234-244. DOI: https://doi.org/10.1080/21645515.2017.1403707.
+30. Staadegaard L, Caini S, Wangchuk S, et al. Defining the seasonality of respiratory syncytial virus around the world: National and subnational surveillance data from 12 countries. Influenza Other Respir Viruses. 2021;15(6):732-741. DOI: https://doi.org/10.1111/irv.12885.
 
-31. Staadegaard L, Caini S, Wangchuk S, et al. Defining the seasonality of respiratory syncytial virus around the world: National and subnational surveillance data from 12 countries. Influenza Other Respir Viruses. 2021;15(6):732-741. DOI: https://doi.org/10.1111/irv.12885.
+31. Vermont Agency of Natural Resources. Climate Change in Vermont. https://climatechange.vermont.gov/vermont-today. Accessed June 1, 2026.
 
-32. Vermont Agency of Natural Resources. Climate Change in Vermont. https://climatechange.vermont.gov/vermont-today. Accessed June 1, 2026.
+32. Lowen AC, Steel J. Roles of humidity and temperature in shaping influenza seasonality. J Virol. 2014;88(14):7692-7695. DOI: https://doi.org/10.1128/JVI.03544-13.
 
-33. Lowen AC, Steel J. Roles of humidity and temperature in shaping influenza seasonality. J Virol. 2014;88(14):7692-7695. DOI: https://doi.org/10.1128/JVI.03544-13.
+33. Paynter S. Humidity and respiratory virus transmission in tropical and temperate settings. Epidemiol Infect. 2015;143(6):1110-1118. DOI: https://doi.org/10.1017/S0950268814002702.
 
-34. Paynter S. Humidity and respiratory virus transmission in tropical and temperate settings. Epidemiol Infect. 2015;143(6):1110-1118. DOI: https://doi.org/10.1017/S0950268814002702.
+34. Nenna R, Evangelisti M, Frassanito A, et al. Respiratory syncytial virus bronchiolitis, weather conditions and air pollution in an Italian urban area: An observational study. Environ Res. 2017;158:188-193. DOI: https://doi.org/10.1016/j.envres.2017.06.014.
 
-35. Nenna R, Evangelisti M, Frassanito A, et al. Respiratory syncytial virus bronchiolitis, weather conditions and air pollution in an Italian urban area: An observational study. Environ Res. 2017;158:188-193. DOI: https://doi.org/10.1016/j.envres.2017.06.014.
+35. Cui, B., Zhang, D., Pan, H. et al. Viral aetiology of acute respiratory infections among children and associated meteorological factors in southern China. BMC Infect Dis 15, 124 (2015). DOI: https://doi.org/10.1186/s12879-015-0863-6.
 
-36. Cui, B., Zhang, D., Pan, H. et al. Viral aetiology of acute respiratory infections among children and associated meteorological factors in southern China. BMC Infect Dis 15, 124 (2015). DOI: https://doi.org/10.1186/s12879-015-0863-6.
+36. Hall CB, Douglas RG, Geiman JM. Possible transmission by fomites of respiratory syncytial virus. Journal of Infectious Diseases 1980; 141: 98–102. DOI: https://doi.org/10.1093/infdis/141.1.98.
 
-37. Hall CB, Douglas RG, Geiman JM. Possible transmission by fomites of respiratory syncytial virus. Journal of Infectious Diseases 1980; 141: 98–102. DOI: https://doi.org/10.1093/infdis/141.1.98.
+37. Olsen SJ, Winn AK, Budd AP, et al. Changes in Influenza and Other Respiratory Virus Activity During the COVID-19 Pandemic — United States, 2020–2021. MMWR Morb Mortal Wkly Rep 2021;70:1013–1019. DOI: http://dx.doi.org/10.15585/mmwr.mm7029a1.
 
-38. Olsen SJ, Winn AK, Budd AP, et al. Changes in Influenza and Other Respiratory Virus Activity During the COVID-19 Pandemic — United States, 2020–2021. MMWR Morb Mortal Wkly Rep 2021;70:1013–1019. DOI: http://dx.doi.org/10.15585/mmwr.mm7029a1.
+38. Thindwa D, Li K, Cooper-Wootton D, Zheng Z, Pitzer VE, Weinberger DM. Global patterns of rebound to normal RSV dynamics following COVID-19 suppression. BMC Infect Dis. 2024;24(1):635. Published 2024 Jun 25. DOI: https://doi.org/10.1186/s12879-024-09509-4.
 
-39. Thindwa D, Li K, Cooper-Wootton D, Zheng Z, Pitzer VE, Weinberger DM. Global patterns of rebound to normal RSV dynamics following COVID-19 suppression. BMC Infect Dis. 2024;24(1):635. Published 2024 Jun 25. DOI: https://doi.org/10.1186/s12879-024-09509-4.
+39. Vermont Department of Health. Respiratory Virus Vaccination Data. https://www.healthvermont.gov/stats/data-reporting-topic/respiratory-virus-vaccination-data. Updated October 28, 2025. Accessed June 26, 2026.
 
-40. Hamid S, Winn A, Parikh R, et al. Seasonality of Respiratory Syncytial Virus — United States, 2017–2023. MMWR Morb Mortal Wkly Rep 2023;72:355–361. DOI: http://dx.doi.org/10.15585/mmwr.mm7214a1.
+40. MayoClinic. Nirsevimab-alip (intramuscular route). https://www.mayoclinic.org/drugs-supplements/nirsevimab-alip-intramuscular-route/description/drg-20552487. Updated February 1, 2026. Accessed June 7, 2026.
 
-41. Vermont Department of Health. Respiratory Virus Vaccination Data. https://www.healthvermont.gov/stats/data-reporting-topic/respiratory-virus-vaccination-data. Updated October 28, 2025. Accessed June 26, 2026.
-
-42. MayoClinic. Nirsevimab-alip (intramuscular route). https://www.mayoclinic.org/drugs-supplements/nirsevimab-alip-intramuscular-route/description/drg-20552487. Updated February 1, 2026. Accessed June 7, 2026.
-
-43. Centers for Disease Control and Prevention. RSV Immunization Guidance for Infants and Young Children. https://www.cdc.gov/rsv/hcp/vaccine-clinical-guidance/infants-young-children.html. Published August 18, 2025. Accessed June 8, 2026.
+41. Centers for Disease Control and Prevention. RSV Immunization Guidance for Infants and Young Children. https://www.cdc.gov/rsv/hcp/vaccine-clinical-guidance/infants-young-children.html. Published August 18, 2025. Accessed June 8, 2026.
 
 # Supplementary Figures
 
@@ -1331,20 +1337,21 @@ decomposed_1966 +
   )
 ```
 
-``` {r supplemental_gam, fig.topcaption = TRUE, fig.cap = "**Figure S2**. Generalized additive model (GAM) smoothed components for RSV wastewater concentration over the observation period at NWSS site 1966; Chittenden county, Vermont, 2023-26"}
+``` {r supplemental_gam_1966, fig.topcaption = TRUE, fig.cap = "**Figure S2**. Generalized additive model (GAM) smoothed components for RSV wastewater concentration over the observation period at NWSS site 1966; Chittenden county, Vermont, 2023-26"}
 
 gam_graphed_1966
 
 ```
 
-``` {r supplemental_gam, fig.topcaption = TRUE, fig.cap = "**Figure S3**. Generalized additive model (GAM) smoothed components for RSV wastewater concentration over the observation period at NWSS site 1975; Washington county, Vermont, 2023-26"}
+``` {r supplemental_gam_1975, fig.topcaption = TRUE, fig.cap = "**Figure S3**. Generalized additive model (GAM) smoothed components for RSV wastewater concentration over the observation period at NWSS site 1975; Washington county, Vermont, 2023-26"}
 
-gam_graphed_1966
 gam_graphed_1975
 
 ```
 
 ---
-*Correspondence: Jacob Pancoast, University of Vermont | jacob.pancoast@uvm.edu*
-*Data: CDC National Wastewater Surveillance System (data.cdc.gov)*
-*The author declares no conflicts of interest.*
+*Correspondence: Jacob Pancoast, University of Vermont | jacob.pancoast@uvm.edu*<br>
+
+*Data: CDC National Wastewater Surveillance System (data.cdc.gov)*<br>
+
+*The author declares no conflicts of interest.*<br>
