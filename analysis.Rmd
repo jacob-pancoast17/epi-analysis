@@ -72,13 +72,14 @@ body {
 <div style ="background-color: #d6d6d6; padding: 10px;">
 # Abstract
 
-In the United States, RSV seasonality has been disrupted following the COVID-19 pandemic. Understanding changes trends may require new analysis methods in areas with gaps in clinical coverage. Wastewater-based epidemiology (WBE) is a cost-effective and rapid tool which can be used to analyze and assess the burden of diseases through wastewater collection. Based on historical trends, expert opinion, and scenario modeling, the CDC expected the 2025-26 RSV season to be no more severe than usual. As of late April, 2026, RSV-NET surveillance indicated RSV levels were high in Vermont. Due to low population, Vermont is a state that may be misrepresented by national predictions.
+In the United States, RSV seasonality has been disrupted following the COVID-19 pandemic, and gaps in clinical surveillance, especially in low-population states, may limit the utility of national assessments. Wastewater-based epidemiology (WBE) offers a cost-effective, population-level alternative that does not rely on clinical testing access. The CDC projected the 2025-26 RSV season to be no more severe than previous seasons; however, as a state contributing minimally to national aggregates, Vermont may be underrepresented in this assessment.
 
-In 2023, participating Vermont NWSS sites began monitoring RSV levels. Since 2023, 6 sites have data for at least 1 season. Data obtained from data.cdc.gov was used to compare trends across sites to infer the burden of RSV in Vermont this season.
+Publicly available RSV wastewater concentration data were obtained from the CDC National Wastewater Surveillance System (NWSS) for Vermont's six participating sites from 2023-26. Three sites with sufficient temporal coverage were  analyzed using seasonal-trend decomposition (STL) and generalized additive models (GAM).
 
-Only 3 of the 6 participating Vermont NWSS sites contained enough data for analysis ($\ge 3$ years). For every remaining site, each was found to have an increased trend in RSV for 2026 using STL decomposition and fitting a generalized additive model. Analyzing season onsets and offsets showed this season also started much later than usual, which may be due to climate change or variation in viral shedding from who was infected and how they were infected.
+All three analyzed sites showed elevated RSV concentrations and upward trends in the 2025-26 season. Season onset occurred 2-3 weeks later than previous seasons, with peaks delayed by approximately one month. As of May 19, 2026, the season was still ongoing. This is potentially attributable to delayed winter onset and variation in viral shedding dynamics.
 
-A large percentage of RSV burden is made up of young children and infants, who receive nirsevimab treatment at the beginning of the respiratory virus season. The delayed and prolonged RSV season in Vermont this year may reflect expiring immunity. Vermont's wastewater data should be compared against clinical data to investigate correlations between the two, which may provide more insight into infection demographics . Better understanding how RSV concentrations in wastewater represent the burden of disease in a community should influence public health decision making and vaccine schedule recommendations. 
+These findings suggest the 2025-26 RSV season in Vermont was more prolonged than national assessments indicated. The coincidence of late-season peaks with waning nirsevimab immunity in infants warrants further consideration in immunization timing guidelines. Integration of clinical outcome data with wastewater surveillance would strengthen interpretation of these findings and support public health resource allocation in Vermont.
+
 </div>
 
 # Introduction
